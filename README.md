@@ -16,7 +16,7 @@ I just audit because it's fun breaking things that are supposed to work.
 | Protocol       | Type           | Date       | Notes |
 |----------------|----------------|------------|-------|
 | [PasswordStore](./2025-07-29-PasswordStore-audit.pdf)  | Shadow Audit   | Jul 2025   | Stored passwords on-chain. Classic. |
-| PuppyRaffle    | Practice Audit | Jul 2025   | No access control. Everyone’s a winner. Or loser. |
+| [PuppyRaffle](./2025-08-31-PuppyRaffle-audit.pdf)    | First Flight | Aug 2025   | Lottery of puppies, but randomness was rigged from the start. |
 
 ## Tools I actually use
 
