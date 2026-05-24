@@ -22,3 +22,10 @@
 - order is security firstm, coding-confidence second.
 - gradual increments on difficulty.
 
+
+## Definition of Success
+- ease in building from scratch.
+- can explain at least 5 exploit and attack patterns.
+- A job Ready Resume.
+- one audit competetion participation.
+- solid portfolio.
