@@ -1,3 +1,9 @@
 [submodule "exploit-pocs/eth-vault/lib/forge-std"]
 	path = exploit-pocs/eth-vault/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "exploit-pocs/reentrancy-poc/lib/forge-std"]
+	path = exploit-pocs/reentrancy-poc/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "exploit-pocs/reentrancy-poc/lib/openzeppelin-contracts"]
+	path = exploit-pocs/reentrancy-poc/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
