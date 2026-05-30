@@ -4,3 +4,4 @@
 | 2026-05-25 | Tiny contract planning: ETH Vault | PLAN.md, EthVault.sol skeleton, day2_reflection.md | 0 | none |
 | 2026-05-26 | ETH Vault deposit slice 1 | deposit() implemented, 2 deposit tests passing, SECURITY.md | 1 | none |
 | 2026-05-27 | ETH Vault withdraw slice 2 | withdraw() with CEI checks, 4 new tests pass (6 total), SECURITY.md updated with withdraw analysis | 0 | none |
+| 2026-05-28 | Reentrancy PoC | VulnerableVault.sol, Attacker.sol, FixedVault.sol, AnotherAttacker.sol, test/ReentrancyPoC.t.sol (2 tests green), PLAN.md, README.md | 1 | none |
