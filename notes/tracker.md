@@ -7,3 +7,4 @@
 | 2026-05-28 | Reentrancy PoC | VulnerableVault.sol, Attacker.sol, FixedVault.sol, AnotherAttacker.sol, test/ReentrancyPoC.t.sol (2 tests green), PLAN.md, README.md | 1 | none |
 | 2026-05-29 | Allowance bug PoC | PLAN, Buggy/Fixed contracts, 4 tests, README | 0 | none |
 | 2026-05-30 | Signature replay PoC | BuggyReplayVault.sol, FixedReplayVault.sol, 4 passing tests, README.md, PLAN.md | 1 | none |
+| 2026-05-31 | Phase 1 close | day8_phase1_close.md, root README updated, baseline refreshed, all tests green | 0  | none |
