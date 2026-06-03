@@ -9,3 +9,4 @@
 | 2026-05-30 | Signature replay PoC | BuggyReplayVault.sol, FixedReplayVault.sol, 4 passing tests, README.md, PLAN.md | 1 | none |
 | 2026-05-31 | Phase 1 close | day8_phase1_close.md, root README updated, baseline refreshed, all tests green | 0  | none |
 | 2026-06-01 | Day 9: Puppy Raffle mental model | `guided-audits/puppy-raffle/mental-model.md` (10 invariants) | 1 | none |
+| 2026-06-02 | Guided audit 1 - Pass 1 scan | pass1_notes.md, 10 flags across 7 functions | 0 | boredom wall on function 5, pushed through |
