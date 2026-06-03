@@ -10,3 +10,6 @@
 [submodule "exploit-pocs/allowance-bank/lib/forge-std"]
 	path = exploit-pocs/allowance-bank/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "exploit-pocs/signature-replay/lib/openzeppelin-contracts"]
+	path = exploit-pocs/signature-replay/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
