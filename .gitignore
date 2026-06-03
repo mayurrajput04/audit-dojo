@@ -1,0 +1,20 @@
+# Foundry
+**/out/
+**/cache/
+**/broadcast/
+
+# Foundry dependency lockfiles are fine to keep
+# but the installed libs themselves are submodules → ignore them too
+**/lib/forge-std/
+**/lib/openzeppelin-contracts/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Env
+.env
+.env.*
+!.env.example
