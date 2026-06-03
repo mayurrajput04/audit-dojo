@@ -3,6 +3,10 @@
 **/cache/
 **/broadcast/
 
+# NOTE: do NOT ignore `lib/` — submodules live there and git tracks
+# them as gitlinks (pointers, not files). Ignoring the path makes
+# `git submodule add` fail with "paths are ignored by .gitignore".
+
 # Editor / OS
 .DS_Store
 .vscode/
