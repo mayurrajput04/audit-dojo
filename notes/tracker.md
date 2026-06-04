@@ -10,3 +10,4 @@
 | 2026-05-31 | Phase 1 close | day8_phase1_close.md, root README updated, baseline refreshed, all tests green | 0  | none |
 | 2026-06-01 | Day 9: Puppy Raffle mental model | `guided-audits/puppy-raffle/mental-model.md` (10 invariants) | 1 | none |
 | 2026-06-02 | Guided audit 1 - Pass 1 scan | pass1_notes.md, 10 flags across 7 functions | 0 | boredom wall on function 5, pushed through |
+| 2026-06-03 | Guided audit 1 - Pass 2 (Accounting) | candidate-findings.md with 2 high severity findings | 1 | none |
