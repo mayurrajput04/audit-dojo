@@ -13,3 +13,4 @@
 | 2026-06-03 | Guided audit 1 - Pass 2 (Accounting) | candidate-findings.md with 2 high severity findings | 1 | none |
 | 2026-06-04 | Day 12: PoC & Report Draft | 3 PoCs (H-1 Scenario A, H-1 Scenario B, H-2) + report_draft.md | 0 | none |
 | 2026-06-05 | Day 13: Guided audit 1 finalization | final-report.md, day13-guided-audit1-finalization.md, tracker updated | 0 | none |
+| 2026-06-06 | Day 14: Extract Checklist | personal-checklist-v1.md, guided_audit_1_takeaways.md, tracker updated | 1 | none |
