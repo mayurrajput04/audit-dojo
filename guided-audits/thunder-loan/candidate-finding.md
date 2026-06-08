@@ -24,6 +24,36 @@ trust model.
 attempting redeem after disallow.
 
 
+## [H-03] `deposit()` incorrectly updates exchange rate, leading to immediate insolvency
+
+**Location:** `src/protocol/ThunderLoan.sol#L153-L154`
+
+**Description:**
+In the `deposit` function, the protocol calls `getCalculatedFee` on the deposited amount and then calls `assetToken.updateExchangeRate(calculatedFee)`. This increases the exchange rate of the `AssetToken` as if a flash loan fee had been paid into the protocol. However, the depositor only transfers the principal `amount` (line 155), not the fee.
+
+This allows a depositor to:
+1. Deposit `X` tokens.
+2. Receive shares based on current exchange rate.
+3. Observe the exchange rate immediately increase due to the "phantom fee."
+4. Immediately redeem shares for `X + profit` tokens.
+
+**Impact:** High. Any depositor can immediately drain funds from the protocol. This leads to insolvency as the `AssetToken`'s exchange rate claims more underlying tokens than the contract actually holds.
+
+**Recommendation:** Remove lines 153-154 from `ThunderLoan.sol`. The exchange rate should only increase when an actual flash loan fee is paid into the `AssetToken` contract.
+
+## [H-04] Oracle manipulation via TSwap spot price allows near-zero fee flash loans
+
+**Location:** `src/protocol/OracleUpgradeable.sol#L19-L22`
+
+**Description:**
+The protocol uses a spot price oracle from TSwap to determine the WETH value of tokens for fee calculation. Since `getPriceOfOnePoolTokenInWeth()` looks at the current balance of the TSwap pool, an attacker can manipulate this price within a single transaction using a flash loan from another source.
+
+By tanking the price of the borrowed token on TSwap before calling `ThunderLoan::flashloan`, the `valueOfBorrowedToken` (and thus the `fee`) can be reduced to near zero.
+
+**Impact:** High. The protocol loses its primary source of revenue (fees), and LPs earn nothing. In extreme cases, this could be combined with other logic to extract value from the system.
+
+**Recommendation:** Use a Time-Weighted Average Price (TWAP) oracle instead of a spot price, or use a decentralized oracle network like Chainlink for price feeds of allowed tokens.
+
 ## [INFO-01] Unused custom error `ThunderLoan__ExhangeRateCanOnlyIncrease`
 
 **Location:**
