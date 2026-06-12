@@ -16,3 +16,4 @@
 | 2026-06-06 | Day 14: Extract Checklist | personal-checklist-v1.md, guided_audit_1_takeaways.md, tracker updated | 1 | none |
 | 2026-06-07 | Day 15: Thunder Loan mental model | thunder-loan/mental-model.md, candidate-findings.md | 0 | none |
 | 2026-06-08 | Day 16: Oracle & Pricing Pass | oracle_pass.md, 2 new Highs in candidate-findings.md | 1 | none |
+| 2026-06-09 | Day 17: Admin & Upgrade Pass | admin_upgrade_pass.md, 2 new Highs (H-05, H-06), 2 new Mediums (M-01, M-02) in candidate-findings.md | 0 | fatigue wall , rescue protocol triggered on Section 2 |
