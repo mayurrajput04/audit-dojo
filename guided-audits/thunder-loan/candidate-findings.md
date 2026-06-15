@@ -1,4 +1,4 @@
-# Candidate Findings — Thunder Loan
+# Candidate Findings: Thunder Loan
 
 ## [H-1] `setAllowedToken(token, false)` orphans LP funds
 
@@ -56,7 +56,7 @@ By tanking the price of the borrowed token on TSwap before calling `ThunderLoan:
 
 ## [H-05] Storage layout collision on V1→V2 upgrade: `s_flashLoanFee` reads old `s_feePrecision` slot, causing 100% fee
 
-**Location:** `src/upgradedProtocol/ThunderLoanUpgraded.sol` — State variable declarations vs `src/protocol/ThunderLoan.sol`
+**Location:** `src/upgradedProtocol/ThunderLoanUpgraded.sol` State variable declarations vs `src/protocol/ThunderLoan.sol`
 
 **Description:**
 In V1 (`ThunderLoan.sol`), the state variables after the mapping are declared in this order:
@@ -81,7 +81,7 @@ This means every flash loan charges a **100% fee** , the borrower must repay dou
 
 ## [H-06] Storage layout collision on V1→V2 upgrade: `s_currentlyFlashLoaning` mapping shifted, orphaning real state
 
-**Location:** `src/upgradedProtocol/ThunderLoanUpgraded.sol` — State variable declarations vs `src/protocol/ThunderLoan.sol`
+**Location:** `src/upgradedProtocol/ThunderLoanUpgraded.sol` State variable declarations vs `src/protocol/ThunderLoan.sol`
 
 **Description:**
 Due to the same slot shift described in H-05, V2's `s_currentlyFlashLoaning` mapping is at slot N+3, which held V1's `s_flashLoanFee` value of `3e15` — a raw uint256, not a mapping.
@@ -97,7 +97,89 @@ V1's actual `s_currentlyFlashLoaning` data lives at slot N+4, which V2 has no va
 **Recommendation:** Same as H-05. Maintain identical storage layout across upgrades. If state migration is needed, implement a dedicated migration function that reads from old slots and writes to new ones.
 
 
-## [M-01] `updateFlashLoanFee` has no lower bound — owner can set fee to 0, halting all LP yield
+## [H-07] Reentrancy via `redeem()` during flashloan callback steals other LPs' principal
+
+**Location:**
+- `src/protocol/ThunderLoan.sol#L194` (exchange rate bumped before fee is secured)
+- `src/protocol/ThunderLoan.sol#L201` (control handed to attacker via `executeOperation`)
+- `src/protocol/ThunderLoan.sol#L161-L178` (`redeem` has no flashloaning-guard / reentrancy guard)
+- `src/protocol/ThunderLoan.sol#L212-L214` (repayment check reads a stale `startingBalance` snapshot from L182)
+
+**Description:**
+Inside `flashloan()`, the exchange rate is increased at L194 (`assetToken.updateExchangeRate(fee)`)
+*before* control is handed to the borrower's `executeOperation` callback at L201, and *before* the fee
+is actually paid into the vault. The `redeem()` function (L161) has no check on
+`s_currentlyFlashLoaning` and no reentrancy guard, so an attacker who is also an LP can re-enter
+`redeem()` from inside `executeOperation` and cash out their shares at the **inflated** exchange rate
+while the inflation is still unbacked by real assets.
+
+Walkthrough (jar = vault balance, round numbers):
+1. Vault holds 1000 underlying. Attacker-LP is owed 100, other LPs owed 900 (balanced).
+2. Flashloan begins. L194 bumps the rate up, so the attacker's shares now claim ~105.
+3. L199 sends the loan out. Control leaves at L201 into the attacker's `executeOperation`.
+4. Inside the callback the attacker repays loan + fee (satisfying the L212 check, which only compares
+   against the stale `startingBalance + fee` snapshot from L182), then calls `redeem()` at the inflated
+   rate and pulls ~105 instead of 100.
+5. Vault now holds ~895; other LPs are still owed 900. They are permanently short ~5, drawn from
+   their deposited principal, not from any earned fee.
+
+The L212 repayment check is blind to the redeem because it only verifies the vault reached
+`startingBalance + fee`; it does not detect that LP shares were also burned and underlying withdrawn
+during the same call.
+
+**Impact:** High → likely Critical. Direct loss of other LPs' deposited principal. Exploitable by any
+user (no privileged role), no large capital requirement, single transaction. Violates INV-8 (the
+vault balance must back all LP claims).
+
+**Recommendation:**
+- Add a `nonReentrant` guard (or a `s_currentlyFlashLoaning`-aware guard) to `redeem()` and `deposit()`
+  so they cannot be entered during an active flashloan.
+- Better: do not bump the exchange rate (L194) until the fee is actually received. Move the
+  `updateExchangeRate` accounting to *after* the repayment check, or account for the fee only once it
+  is confirmed in the vault.
+
+**Status:** Hypothesis derived in Day 18 flashloan logic pass. Verify in pass 2 with a Foundry PoC:
+deposit as LP -> initiate flashloan -> inside callback repay then redeem at inflated rate -> assert a
+second honest LP can no longer redeem their full claim.
+
+## [H-08] No re-entry guard on `flashloan()` — nested loan flips `s_currentlyFlashLoaning` early, bricking the outer repay (state-machine break)
+
+**Location:**
+- `src/protocol/ThunderLoan.sol#L180-L186` (`flashloan` top — no `s_currentlyFlashLoaning` check)
+- `src/protocol/ThunderLoan.sol#L216` (inner loan sets flag false)
+- `src/protocol/ThunderLoan.sol#L219-L222` (`repay` requires the flag to be true)
+
+**Description:**
+`flashloan()` sets `s_currentlyFlashLoaning[token] = true` (L198) but never checks it at the top of
+the function. Because the callback at L201 hands arbitrary control to the borrower, the borrower can
+re-enter `flashloan()` (for the same token) from inside `executeOperation`. The inner loan runs to
+completion and at L216 sets `s_currentlyFlashLoaning[token] = false` — while the OUTER loan is still
+in progress.
+
+The flag is now false mid-outer-loan. INV-4 (the flag must be true for the entire duration of a single
+loan) is violated. Concretely, when the outer borrower then calls `repay()` (L220), the guard
+`if (!s_currentlyFlashLoaning[token]) revert ThunderLoan__NotCurrentlyFlashLoaning()` triggers a
+revert. The outer loan can no longer be repaid, so the outer `flashloan()` fails its own L212 check
+and the whole transaction reverts.
+
+**Impact:** On its own, a self-bricking denial-of-service on nested loans. More importantly, it shows
+the `s_currentlyFlashLoaning` state machine is not re-entrancy safe. Combined with H-07 (redeem at
+inflated rate during the callback), the lack of any global re-entry lock lets an attacker open loans
+across multiple tokens at once and stack the H-07 principal theft across every pool in a single
+transaction — raising the combined severity to Critical.
+
+**Recommendation:**
+- Add a check at the top of `flashloan()`: `if (s_currentlyFlashLoaning[token]) revert ...;` to forbid
+  nesting per token, or
+- Add a contract-wide `nonReentrant` guard covering `flashloan`, `deposit`, and `redeem`, so no state-
+  mutating entry point can be re-entered while a flashloan is active.
+
+**Status:** Hypothesis derived in Day 18 flashloan logic pass. Verify in pass 2 with a Foundry PoC:
+flashloan(tokenA) -> inside callback flashloan(tokenA) again -> outer repay reverts with
+`ThunderLoan__NotCurrentlyFlashLoaning()`. Then extend to cross-token to demonstrate stacked H-07 theft.
+
+
+## [M-01] `updateFlashLoanFee` has no lower bound thus owner can set fee to 0, halting all LP yield
 
 **Location:** `src/protocol/ThunderLoan.sol#L252-L256`
 
@@ -138,12 +220,12 @@ in scope. The actual exchange-rate-monotonicity check is enforced in
 `AssetToken.sol#L91` via a *different* error: `AssetToken__ExhangeRateCanOnlyIncrease`.
 
 **Impact:** Informational. Dead code. No security impact directly, but:
-- Suggests incomplete refactor — possibly the check was intended at the ThunderLoan
+- Suggests incomplete refactor , possibly the check was intended at the ThunderLoan
   level (e.g., as a safety net) and never wired up.
 - Typo in error name ("Exhange" instead of "Exchange") is propagated across files.
 
 **Recommendation:** Remove the unused error, OR if the intent was to enforce the
 invariant at the ThunderLoan layer, add the missing check. Also fix the typo.
 
-**Status:** Hypothesis — verify in pass 2 whether removal vs. wiring-up is correct.
+**Status:** Hypothesis - verify in pass 2 whether removal vs. wiring-up is correct.
 

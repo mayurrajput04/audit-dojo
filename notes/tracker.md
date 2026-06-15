@@ -17,3 +17,4 @@
 | 2026-06-07 | Day 15: Thunder Loan mental model | thunder-loan/mental-model.md, candidate-findings.md | 0 | none |
 | 2026-06-08 | Day 16: Oracle & Pricing Pass | oracle_pass.md, 2 new Highs in candidate-findings.md | 1 | none |
 | 2026-06-09 | Day 17: Admin & Upgrade Pass | admin_upgrade_pass.md, 2 new Highs (H-05, H-06), 2 new Mediums (M-01, M-02) in candidate-findings.md | 0 | fatigue wall , rescue protocol triggered on Section 2 |
+| 2026-06-15 | Day 18: Flash Loan Logic & Reentrancy Pass | flashloan_logic_pass.md (all 5 sections), 2 new Highs (H-07 redeem reentrancy/INV-8, H-08 nested-flashloan state-machine break/INV-4) in candidate-finding.md, applications-log.md created | 1  | rescue protocol triggered once on "backed by other LPs' principal" \u2014 cleared via piggy-bank model |
