@@ -41,6 +41,9 @@ This allows a depositor to:
 
 **Recommendation:** Remove lines 153-154 from `ThunderLoan.sol`. The exchange rate should only increase when an actual flash loan fee is paid into the `AssetToken` contract.
 
+**Status: CONFIRMED** (Validated via Foundry PoC: `audit-dojo/guided-audits/thunder-loan/pocs/H2_deposit_exchange_rate.sol`)
+
+
 ## [H-04] Oracle manipulation via TSwap spot price allows near-zero fee flash loans
 
 **Location:** `src/protocol/OracleUpgradeable.sol#L19-L22`
@@ -53,6 +56,9 @@ By tanking the price of the borrowed token on TSwap before calling `ThunderLoan:
 **Impact:** High. The protocol loses its primary source of revenue (fees), and LPs earn nothing. In extreme cases, this could be combined with other logic to extract value from the system.
 
 **Recommendation:** Use a Time-Weighted Average Price (TWAP) oracle instead of a spot price, or use a decentralized oracle network like Chainlink for price feeds of allowed tokens.
+
+**Status: CONFIRMED** (Validated via Foundry PoC: `audit-dojo/guided-audits/thunder-loan/pocs/H3_oracle_manipulation.sol`)
+
 
 ## [H-05] Storage layout collision on V1→V2 upgrade: `s_flashLoanFee` reads old `s_feePrecision` slot, causing 100% fee
 
@@ -78,6 +84,8 @@ This means every flash loan charges a **100% fee** , the borrower must repay dou
 
 **Recommendation:** Never change a `private` state variable to a `constant` in an upgradeable contract. If a value is truly constant, it should have been `constant` from the start. If it must be migrated, use a new variable name and storage slot, and handle the old slot in a migration function.
 
+**Status: CONFIRMED** (Validated via Foundry PoC: `audit-dojo/guided-audits/thunder-loan/pocs/H5_storage_collision.sol`)
+
 
 ## [H-06] Storage layout collision on V1→V2 upgrade: `s_currentlyFlashLoaning` mapping shifted, orphaning real state
 
@@ -95,6 +103,8 @@ V1's actual `s_currentlyFlashLoaning` data lives at slot N+4, which V2 has no va
 **Impact:** High. Loss of funds for borrowers mid-loan during upgrade. Storage corruption for all new flash loans after upgrade.
 
 **Recommendation:** Same as H-05. Maintain identical storage layout across upgrades. If state migration is needed, implement a dedicated migration function that reads from old slots and writes to new ones.
+
+**Status: CONFIRMED** (As a direct corollary of the slot shift validated in `audit-dojo/guided-audits/thunder-loan/pocs/H5_storage_collision.sol`)
 
 
 ## [H-07] Reentrancy via `redeem()` during flashloan callback steals other LPs' principal
@@ -141,6 +151,7 @@ vault balance must back all LP claims).
 **Status:** Hypothesis derived in Day 18 flashloan logic pass. Verify in pass 2 with a Foundry PoC:
 deposit as LP -> initiate flashloan -> inside callback repay then redeem at inflated rate -> assert a
 second honest LP can no longer redeem their full claim.
+
 
 ## [H-08] No re-entry guard on `flashloan()` — nested loan flips `s_currentlyFlashLoaning` early, bricking the outer repay (state-machine break)
 
@@ -206,7 +217,6 @@ All three owner-restricted functions execute immediately with no delay. There is
 **Recommendation:** Implement a timelock (e.g., 48-hour delay) on all admin actions. Consider multi-sig or governance for upgrades.
 
 
-
 ## [INFO-01] Unused custom error `ThunderLoan__ExhangeRateCanOnlyIncrease`
 
 **Location:**
@@ -226,6 +236,3 @@ in scope. The actual exchange-rate-monotonicity check is enforced in
 
 **Recommendation:** Remove the unused error, OR if the intent was to enforce the
 invariant at the ThunderLoan layer, add the missing check. Also fix the typo.
-
-**Status:** Hypothesis - verify in pass 2 whether removal vs. wiring-up is correct.
-
