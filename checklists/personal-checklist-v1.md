@@ -26,3 +26,28 @@
 
 ## 6. Event Correctness
 - Are state-changing actions (especially those involving value transfers or critical state updates) reliably emitting events? Are those events logging the correct, fully-updated data rather than stale variables?
+
+## 7. Upgradeable Storage Layout
+- Compare V1 and V2 variable declarations side-by-side. Do the storage slots line up exactly?
+- Is any `private` state variable in V1 replaced with a `constant` in V2? (Constants do not occupy storage slots, this shifts all subsequent variables by 1 slot).
+- Is there a `__gap` array at the end of each upgradeable contract to absorb future variable additions?
+- If an upgrade changes storage layout, is there a dedicated one-time migration function that reads old slots and writes to new ones?
+- Are storage variables using namespaced storage (ERC-7201) to decouple layout from inheritance/declaration order?
+
+## 8. Oracle & Pricing
+- Is the oracle source a **spot price** (instantaneous pool reserves)? If yes, it can be manipulated in one transaction.
+- Is there a Time-Weighted Average Price (TWAP) with a meaningful window (≥ 30 minutes)?
+- Is there a fallback oracle (e.g., Chainlink) with deviation/staleness checks?
+- Does the fee calculation have a **minimum fee floor** regardless of oracle price?
+
+## 9. Flash Loan Safety
+- Does `flashloan()` check `s_currentlyFlashLoaning[token]` at the **top** of the function to prevent nesting?
+- Is the exchange rate updated **before** or **after** the repayment is confirmed? (Must be after — the fee must be physically in the vault before inflating the rate).
+- Are `deposit()`, `redeem()`, and `flashloan()` guarded by a reentrancy lock (`nonReentrant`)?
+- Can `redeem()` or `deposit()` be called during an active flashloan callback? (If yes, the exchange rate window is exploitable for principal theft).
+- Does `repay()` check `s_currentlyFlashLoaning[token]` before accepting repayment? (If the flag is false, the borrower can't repay ,state-machine break).
+
+## 10. Timelocks & Centralization
+- Do admin functions (fee updates, token allow-listing, upgrades) execute **instantly** or through a timelock?
+- Is there a minimum fee threshold to prevent owner from setting fee to 0%?
+- Can the owner disallow a token and **orphan** LP funds? (Check if the AssetToken mapping is deleted vs. just marked inactive).
