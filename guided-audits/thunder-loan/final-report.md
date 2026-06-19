@@ -32,7 +32,7 @@ This audit reflects a best-effort security review conducted within the scope of 
 
 ## Executive Summary
 
-r Loan is a decentralized flash loan protocol backed by LP deposits. It uses a UUPS upgradeable architecture with a spot-price oracle sourced from TSwap for fee calculation. Our review identified **6 High-severity findings**, **2 Medium-severity findings**, and **1 Informational finding** across the protocol.
+Thunder Loan is a decentralized flash loan protocol backed by LP deposits. It uses a UUPS upgradeable architecture with a spot-price oracle sourced from TSwap for fee calculation. Our review identified **6 High-severity findings**, **2 Medium-severity findings**, and **1 Informational finding** across the protocol.
 
 
 | Severity | Count | Affected Areas |
@@ -114,7 +114,7 @@ Separate the concerns of "is this token allowed for deposits" from "where is the
 +    }
 ```
 
-The `s_tokenToAssetToken` mapping is never deleted it always points to the existing AssetToken contract, allowing redemptions even when the token is disallowed for new deposits.
+The `s_tokenToAssetToken` mapping is never deleted; it always points to the existing AssetToken contract, allowing redemptions even when the token is disallowed for new deposits.
 
 
 ---
@@ -141,7 +141,7 @@ Depositor redeems → receives 1003 tokens → profit of 3 tokens from thin air
 #### Exploit Walkthrough
 
 1. LP deposits 1000 tokens to seed liquidity.
-2. Attacker deposits 1000 tokens , so the exchange rate is immediately bumped by a phantom 0.3% fee.
+2. Attacker deposits 1000 tokens, so the exchange rate is immediately bumped by a phantom 0.3% fee.
 3. Attacker calls `redeem(type(uint256).max)` receives ~1003 tokens.
 4. Attacker profits 3 tokens drawn from the LP's principal.
 5. Protocol is now insolvent: vault holds less than the sum of all LP claims.
@@ -187,7 +187,7 @@ contract H2DepositExchangeRatePoC is BaseTest {
         vm.stopPrank();
         assertGt(attackerEndingBalance, attackerStartingBalance, "H-2: attacker should profit from phantom fee");
     }
-}  
+}
 ```
 
 #### Downstream Impacts (H-5, H-6 merged under H-2)
@@ -198,7 +198,7 @@ The same root cause (exchange rate inflated before repayment is confirmed, plus 
 Because the exchange rate is bumped at line 194 **before** the borrower's `executeOperation` callback, an attacker who is also an LP can re-enter `redeem()` from inside the callback and cash out at the inflated rate. The repayment check on line 212 only verifies the vault reached `startingBalance + fee`, it does not detect the simultaneous withdrawal. Other LPs' principal is stolen.
 
 #### **[H-6] : Nested Flashloan Flips `s_currentlyFlashLoaning` Early:**
-`flashloan()` never checks `s_currentlyFlashLoaning[token]` at function entry. An attacker can re-enter `flashloan()` for the same token from inside `executeOperation`. The inner loan completes and sets the flag to `false` while the outer loan is still in flight. The outer `repay()` call reverts because the flag reads `false` , the loan is bricked.
+`flashloan()` never checks `s_currentlyFlashLoaning[token]` at function entry. An attacker can re-enter `flashloan()` for the same token from inside `executeOperation`. The inner loan completes and sets the flag to `false` while the outer loan is still in flight. The outer `repay()` call reverts because the flag reads `false`; the loan is bricked.
 
 #### Recommended Mitigation
 
@@ -479,13 +479,13 @@ Replacing `s_feePrecision` (a `uint256 private` state variable) with `uint256 pu
 fee = (valueOfBorrowedToken * 1e18) / 1e18 = valueOfBorrowedToken
 ```
 
-Every flash loan charges 100% , borrower must repay double the loan amount. Protocol is functionally bricked.
+Every flash loan charges 100%; the borrower must repay double the loan amount. Protocol is functionally bricked.
 
 **(b) Flash loan state corruption (H-5):**
 V2's `s_currentlyFlashLoaning` mapping at slot N+3 reads V1's `s_flashLoanFee` value of `3e15` which is a raw `uint256`, not a valid mapping. V1's actual flash-loan state lives at slot N+4, which V2 has no variable referencing.
 
 Consequences:
-- **Mid-loan bricking:** If a flash loan was in progress during upgrade, `repay()` checks the wrong slot, finds `false`, and reverts. Borrower cannot repay , thus funds are stuck forever.
+- **Mid-loan bricking:** If a flash loan was in progress during upgrade, `repay()` checks the wrong slot, finds `false`, and reverts. Borrower cannot repay; thus funds are stuck forever.
 - **Storage corruption:** Every new flash loan after upgrade writes to slot N+3, which initially contained `3e15`. This corrupts the mapping state on every write.
 
 #### Impact
@@ -644,7 +644,7 @@ The error `ThunderLoan__ExhangeRateCanOnlyIncrease()` is declared in both contra
 
 #### Impact
 
-- Dead code ,no security impact.
+- Dead code; no security impact.
 - Suggests incomplete refactor; the check may have been intended at the ThunderLoan layer and never wired up.
 - Typo ("Exhange" instead of "Exchange") is propagated across files.
 
