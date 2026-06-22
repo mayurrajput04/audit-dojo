@@ -223,7 +223,7 @@ Do **not** treat these as polished findings. Just raw flags from mapping.
 
 ## 6. Quick Answers to Today's Mapping Questions (From Code Trace)
 
-(We walked these together via structured questioning.)
+(We walked these together via structured questioning.)_student
 
 1. **graduateAndUpgrade upgrade vs transfers?**  
    `_authorizeUpgrade` (empty) **first**, transfers **after**. If upgrade "succeeded" (it doesn't), proxy would switch before transfers. If a transfer later reverts → whole tx reverts (no upgrade effect anyway).
