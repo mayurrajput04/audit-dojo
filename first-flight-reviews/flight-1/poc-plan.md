@@ -97,3 +97,52 @@ Question you must answer before coding:
 - Do not claim a “graduated” state variable is updated. No such state exists.
 - This PoC should isolate the no-upgrade bug. Do not mix H-03 wage math or H-01 storage corruption into the core assertion.
 - H-01 storage corruption is only reachable if an actual upgrade occurs. H-02 proves the intended public flow never reaches that state.
+
+
+# Hawk High Day 26 H-03 PoC Plan
+
+## Selected Finding
+[H-03] Teacher wage calculation pays 35% of bursary to each teacher instead of splitting 35% among teachers
+
+## Bug Summary 
+The intended wage model is that teachers collectively receive 35% of the bursary and the principal receives 5%. However, `graduateAndUpgrade()` calculates `payPerTeacher = (bursary * TEACHER_WAGE) / PRECISION` and then transfers that amount to every teacher in `listOfTeachers`. `totalTeachers` is read but is not used to divide the teacher wage pool. 
+
+With two teachers, the contract pays 70% of the bursary to teachers plus 5% to the principal, leaving only 25% instead of the expected 60%.
+
+## Root Cause (exact lines)
+`LevelOne.sol:300-311`
+
+## Expected Behavior
+- We have bursary of 10,000e18. 
+- Contract calculates `noOfTeachers` (2 teachers for our test case).
+- Both teachers get the share of 35%. 
+- 35 percent divided into both equally i.e. 3,500e18 (Alice = 3500/2 = 1,750e18, Bob = 3500/2 = 1,750e18).
+
+## Actual Behavior
+- We have bursary of 10,000e18. 
+- Contract calculates `noOfTeachers` (2 teachers for our test case).
+- Both teachers get 35% each, meaning both get 3,500e18 individually i.e. 7,000e18 collectively.
+
+## Test Setup
+1. Enroll students so the contract has a nonzero `bursary`.
+2. Add 2 Teachers (Alice, Bob).
+3. Record balances of Alice and Bob before graduation.
+
+## Action
+Call `graduateAndUpgrade()` as the principal.
+
+## Assertions
+```solidity
+uint256 aliceDelta = usdc.balanceOf(alice) - aliceBalanceBefore;
+uint256 bobDelta = usdc.balanceOf(bob) - bobBalanceBefore;
+
+// Prove they got 35% EACH instead of sharing 35%
+assertEq(aliceDelta, (bursaryBefore * 35) / 100);
+assertEq(bobDelta, (bursaryBefore * 35) / 100);
+assertEq(aliceDelta + bobDelta, (bursaryBefore * 70) / 100);
+```
+
+## Edge Cases / Notes
+- There is no totalTeacher check, so handle `totalTeachers == 0` explicitly in mitigation and account for rounding dust.
+
+

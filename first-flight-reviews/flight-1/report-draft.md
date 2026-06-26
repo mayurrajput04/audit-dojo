@@ -52,3 +52,64 @@ Do not call `_authorizeUpgrade(_levelTwo)` directly from `graduateAndUpgrade()`.
 The `bytes memory` parameter should be named and used if the upgrade is expected to call `LevelTwo.graduate()` or another reinitializer. Add a regression test that reads the ERC1967 implementation slot before and after graduation and asserts that it changes from the `LevelOne` implementation address to the `LevelTwo` implementation address.
 
 Before enabling the real upgrade path, the storage layout incompatibility between `LevelOne` and `LevelTwo` should also be fixed; otherwise, correcting this issue may expose the separate storage-corruption issue described in H-01.
+
+
+## [H-03] Teacher wage calculation pays 35% of bursary to each teacher instead of splitting 35% among teachers
+
+### Summary
+
+The intended wage model is that teachers collectively receive 35% of the bursary and the principal receives 5%. However, `graduateAndUpgrade()` calculates `payPerTeacher = (bursary * TEACHER_WAGE) / PRECISION` and then transfers that amount to every teacher in `listOfTeachers`. `totalTeachers` is read but is not used to divide the teacher wage pool.
+
+With two teachers, the contract pays 70% of the bursary to teachers plus 5% to the principal, leaving only 25% instead of the expected 60%.
+
+### Vulnerability Details
+
+Principal calls `graduateAndUpgrade()` at `LevelOne.sol:295`. The teacher count is stored in `totalTeachers` at `LevelOne.sol:300`, and we also calculate `payPerTeacher` and `principalPay` at `LevelOne.sol:302-303`. 
+
+```solidity
+uint256 payPerTeacher = (bursary * TEACHER_WAGE) / PRECISION;
+```
+
+At `LevelOne.sol:307-309`, `LevelOne.sol::graduateAndUpgrade()` calculates 35% of bursary to each teacher instead of a shared 35% of bursary between all teachers.
+
+```solidity
+for (uint256 n = 0; n < totalTeachers; n++) {
+   usdc.safeTransfer(listOfTeachers[n], payPerTeacher);
+}
+```
+
+Due to poor math calculation at `LevelOne.sol:302`, `payPerTeacher` allows the payment to be done as 35% of the bursary per teacher instead of calculating a total teacher pool and sharing the 35% amount among them. This directly breaks protocol invariant INV-1.
+
+### Impact
+
+With one teacher, the result is accidentally correct. With two teachers, the contract pays 70% of the bursary to teachers plus 5% to the principal, leaving only 25% instead of the expected 60%. 
+
+This can drain excess funds to teachers or make graduation/wage payout impossible depending on teacher count (with 3 teachers, the required payout is 105% + 5% = 110%, causing `graduateAndUpgrade()` to revert due to insufficient balance).
+
+### Proof of Concept
+
+1. Enroll students so the contract has a nonzero `bursary`.
+2. Add 2 teachers (Alice, Bob).
+3. Record balances of Alice and Bob before graduation.
+4. Call `graduateAndUpgrade()`.
+5. Verify each teacher receives 35% of the bursary, proving total teacher payout is 70% instead of 35%.
+
+```solidity
+uint256 aliceDelta = usdc.balanceOf(alice) - aliceBalanceBefore;
+uint256 bobDelta = usdc.balanceOf(bob) - bobBalanceBefore;
+
+assertEq(aliceDelta, (bursaryBefore * 35) / 100);
+assertEq(bobDelta, (bursaryBefore * 35) / 100);
+assertEq(aliceDelta + bobDelta, (bursaryBefore * 70) / 100);
+```
+
+### Recommended Mitigation
+
+Calculate a shared teacher wage pool and divide it by the number of teachers:
+
+```solidity
+uint256 teacherPool = (bursary * TEACHER_WAGE) / PRECISION; 
+uint256 payPerTeacher = totalTeachers > 0 ? teacherPool / totalTeachers : 0;
+```
+Also handle `totalTeachers == 0` explicitly and account for rounding dust.
+

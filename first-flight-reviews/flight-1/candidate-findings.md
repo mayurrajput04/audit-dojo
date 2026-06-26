@@ -74,7 +74,7 @@ Call the proper UUPS upgrade function, such as `upgradeToAndCall(_levelTwo, data
 
 **Invariant Violated:** INV-1
 
-**Description:**
+**Description:**  
 The intended wage model is that teachers collectively receive 35% of the bursary and the principal receives 5%. However, `graduateAndUpgrade()` calculates `payPerTeacher = (bursary * TEACHER_WAGE) / PRECISION` and then transfers that amount to every teacher in `listOfTeachers`. `totalTeachers` is read but is not used to divide the teacher wage pool.
 
 **Impact:**
