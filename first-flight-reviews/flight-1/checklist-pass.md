@@ -33,18 +33,18 @@ Applies? Yes.
 - Additional missing mapping slots:
   - `reviewCount`  mapping(address => uint256)  
   - `lastReviewTime` mapping(address => uint256) 
+  
 - `__gap` present?
-
   - I don't see `__gap` anywhere in contract.
-- Migration function present?
 
+- Migration function present?
   - No meaningful migration function exists. `LevelTwo.graduate()` is a `reinitializer(2)` but its body is empty, so it does not repair the shifted storage layout or initialize migrated state.
 
 - Actual upgrade execution present in `graduateAndUpgrade()`?
   - No. `graduateAndUpgrade()` calls `_authorizeUpgrade(_levelTwo)` directly, but this only runs the authorization hook. It does not change the proxy implementation because there is no call to `upgradeToAndCall(_levelTwo, data)`.
 
 - Namespaced storage / ERC-7201?
-  - No. Hawk High uses normal declaration-order storage for protocol state. Variables like `principal`, `bursary`, `studentScore`, and `listOfStudents` depend on matching slot order between LevelOne and LevelTwo. There is no namespaced storage struct protecting layout across upgrades.
+  - No. Hawk High uses normal declaration-order storage for protocol state. Variables like `principal`, `bursary`, `studentScore`, and `listOfStudents` depend on matching slot order between LevelOne and LevelTwo. There is no namespaced storage struct protecting layout across u pgrades.
 
 - Does LevelTwo preserve UUPS upgradeability?
   - No. `LevelTwo` inherits only `Initializable`, not `UUPSUpgradeable`, and it does not implement `_authorizeUpgrade()`. If the proxy were upgraded to LevelTwo, the system would lose the normal UUPS upgrade interface for future upgrades.

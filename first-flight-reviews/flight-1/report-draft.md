@@ -1,5 +1,121 @@
 # Hawk High Report Draft
 
+
+## [H-01] Storage layout incompatibility corrupts LevelTwo state after upgrade
+
+### Summary
+
+`LevelTwo` removes three storage variables from `LevelOne` (`schoolFees`, `reviewCount`, `lastReviewTime`) without preserving layout compatibility. After an upgrade, `LevelTwo` reads the wrong data from every subsequent slot. `sessionEnd` returns school fees, `bursary` returns a timestamp, and mappings/arrays become corrupted.
+
+### Vulnerability Details 
+
+`LevelOne` storage layout (relevant slots):
+
+| Slot | Variable          | Type                          |
+|------|-------------------|-------------------------------|
+| 0    | principal + inSession | address + bool (packed)     |
+| 1    | schoolFees        | uint256                       |
+| 2    | sessionEnd        | uint256                       |
+| 3    | bursary           | uint256                       |
+| 4    | cutOffScore       | uint256                       |
+| 5    | isTeacher         | mapping(address => bool)      |
+| 6    | isStudent         | mapping(address => bool)      |
+| 7    | studentScore      | mapping(address => uint256)   |
+| 8    | reviewCount       | mapping(address => uint256)   |
+| 9    | lastReviewTime    | mapping(address => uint256)   |
+| 10   | listOfStudents    | address[]                     |
+| 11   | listOfTeachers    | address[]                     |
+| 12   | usdc              | IERC20                        |
+
+`LevelTwo` storage layout:
+
+| Slot | Variable       | Type                          |
+|------|----------------|-------------------------------|
+| 0    | principal + inSession | address + bool (packed) |
+| 1    | sessionEnd     | uint256                       |
+| 2    | bursary        | uint256                       |
+| 3    | cutOffScore    | uint256                       |
+| 4    | isTeacher      | mapping(address => bool)      |
+| 5    | isStudent      | mapping(address => bool)      |
+| 6    | studentScore   | mapping(address => uint256)   |
+| 7    | listOfStudents | address[]                     |
+| 8    | listOfTeachers | address[]                     |
+| 9    | usdc           | IERC20                        |
+
+Because `schoolFees` (slot 1), `reviewCount` (slot 8), and `lastReviewTime` (slot 9) are removed in `LevelTwo`, all variables after slot 0 are shifted by 1–3 slots.
+
+### Impact
+
+After an upgrade to `LevelTwo`, the proxy reads completely corrupted state:
+
+- `sessionEnd()` returns a school fee amount instead of a timestamp.
+- `bursary()` returns a timestamp instead of the actual USDC balance.
+- `cutOffScore()` returns the bursary amount.
+- All teacher/student mappings and arrays (`isTeacher`, `studentScore`, `listOfStudents`, `usdc`) read from incorrect storage locations.
+
+This can cause:
+- Incorrect session timing and graduation logic
+- Loss of the real bursary balance (funds appear missing or wrong)
+- Broken teacher/student state (wrong permissions, wrong scores)
+- Potential loss of funds if any logic in `LevelTwo` acts on the corrupted values
+
+This is a **High** severity issue because storage corruption after an upgrade is permanent and breaks the entire protocol state.
+
+### Proof of Concept
+
+The PoC deploys `LevelOne` behind a proxy, adds teachers, enrolls students, and starts a session to populate state. It records the expected values through `LevelOne` getters:
+
+- `schoolFeesBefore = 5,000e18`
+- `sessionEndBefore = 2,419,201`
+- `bursaryBefore = 15,000e18`
+
+It then deploys `LevelTwo` and simulates an upgrade by replacing the proxy’s runtime code with `LevelTwo` using `vm.etch(proxyAddress, address(levelTwoImplementation).code)`.
+
+After the upgrade, reading state through the `LevelTwo` interface produces completely corrupted results:
+
+```solidity
+LevelTwo levelTwoProxy = LevelTwo(proxyAddress);
+
+assertNotEq(levelTwoProxy.sessionEnd(), sessionEndBefore);
+assertNotEq(levelTwoProxy.bursary(), bursaryBefore);
+assertNotEq(levelTwoProxy.cutOffScore(), 70);
+```
+
+**Test output:**
+```bash
+[⠊] Compiling...
+No files changed, compilation skipped
+
+Ran 1 test for test/poc/H01_StorageCollision.t.sol:H01_StorageCollisionPoC
+[PASS] test_storageCollisionAfterUpgrade() (gas: 619619)
+Logs:
+  schoolFeesBefore: 5000000000000000000000
+  sessionEndBefore: 2419201
+  bursaryBefore: 15000000000000000000000
+  LevelTwo.sessionEnd(): 0
+  LevelTwo.bursary(): 0
+  LevelTwo.cutOffScore(): 0
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 4.05ms (540.11µs CPU time)
+
+Ran 1 test suite in 14.42ms (4.05ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+```
+
+### Recommended Mitigation
+
+To prevent storage layout corruption during upgrades:
+
+1. **Never remove or reorder storage variables** between upgradeable versions. If a variable is no longer needed, keep it as a reserved/deprecated field.
+2. Add a storage gap at the end of `LevelOne`:
+   ```solidity
+   uint256[50] private __gap;
+   ```
+3. When introducing `LevelTwo`, declare all previous storage variables first (even if unused), then add new variables after them.
+4. Consider using a storage struct pattern or inheritance-based storage layout to make future upgrades safer.
+
+Additionally, the upgrade mechanism itself (`graduateAndUpgrade()`) should be fixed (see H-02) before any real upgrade is attempted, as the current path never actually upgrades the implementation.
+
+
 ## [H-02] `graduateAndUpgrade()` never performs the actual UUPS upgrade
 
 ### Summary

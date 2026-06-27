@@ -146,3 +146,98 @@ assertEq(aliceDelta + bobDelta, (bursaryBefore * 70) / 100);
 - There is no totalTeacher check, so handle `totalTeachers == 0` explicitly in mitigation and account for rounding dust.
 
 
+
+# Hawk High Day 27 H-01 PoC Plan
+
+## Selected Finding
+[H-01] Storage layout incompatibility corrupts LevelTwo state after upgrade
+
+
+## Bug Summary
+`LevelTwo` does not preserve the storage layout of `LevelOne`. `LevelOne` declares `schoolFees` at slot 1, `reviewCount` at slot 8, and `lastReviewTime` at slot 9, but those variables are absent from `LevelTwo`. Because upgradeable proxy storage is reused across implementations, removing variables shifts the meaning of later slots. For example, `LevelTwo.sessionEnd` at slot 1 reads old `LevelOne.schoolFees`, `LevelTwo.bursary` at slot 2 reads old `LevelOne.sessionEnd`, and `LevelTwo.cutOffScore` at slot 3 reads old `LevelOne.bursary`. Mapping and array seed slots are also shifted, causing `studentScore`, `listOfStudents`, `listOfTeachers`, and `usdc` to read from incorrect storage locations.
+
+
+## Root Cause (exact lines & slot comparison)
+
+LevelOne.sol declares:
+- `schoolFees` at slot 1 (line 40)
+- `sessionEnd` at slot 2
+- `bursary` at slot 3
+- `reviewCount` at slot 8
+- `lastReviewTime` at slot 9
+
+LevelTwo.sol declares:
+- `sessionEnd` at slot 1
+- `bursary` at slot 2
+- `cutOffScore` at slot 3
+- `studentScore` at slot 6
+- `listOfStudents` at slot 7
+- `usdc` at slot 9
+
+Because `schoolFees`, `reviewCount`, and `lastReviewTime` are removed, every subsequent variable in LevelTwo reads from the wrong slot.
+
+## Expected Behavior
+
+After an upgrade from `LevelOne` to `LevelTwo`, the proxy must preserve the meaning of all state variables:
+
+- `sessionEnd` must still return the timestamp written during `startSession()`
+- `bursary` must still return the accumulated `schoolFees` collected from students
+- `cutOffScore` must still return the value passed to `startSession()`
+- Mapping and array operations (`isStudent`, `studentScore`, `listOfStudents`, `usdc`) must continue to read/write the correct data.
+
+## Actual Behavior
+
+Because `schoolFees` (slot 1), `reviewCount` (slot 8), and `lastReviewTime` (slot 9) are missing in `LevelTwo`, all subsequent variables are shifted:
+
+- `LevelTwo.sessionEnd()` (slot 1) returns the old `schoolFees` value instead of the session timestamp.
+- `LevelTwo.bursary()` (slot 2) returns the old `sessionEnd` timestamp instead of the token balance.
+- `LevelTwo.cutOffScore()` (slot 3) returns the old `bursary` amount.
+- `studentScore`, `listOfStudents`, `listOfTeachers`, and `usdc` all read from incorrect storage locations due to the shifted mapping seeds and array slots.
+
+## Test Setup
+
+1. Deploy `LevelOne` behind an ERC1967Proxy using the existing deploy script.
+2. As principal, add at least two teachers and enroll at least two students so `bursary > 0`.
+3. Call `startSession(70)` to set a known `sessionEnd` and `cutOffScore`.
+4. Record the current values through `LevelOne` getters:
+   - `getSchoolFeesCost()`
+   - `getSessionEnd()`
+   - `bursary`
+   - `cutOffScore`
+5. Deploy a `LevelTwo` implementation contract.
+6. (Note: We will bypass the broken `graduateAndUpgrade()` for this PoC and simulate the upgrade directly in the test harness.)
+
+## Action
+
+In the test:
+1. Deploy `LevelOne` proxy + implementation.
+2. Set up state (add teachers, enroll students, start session).
+3. Record critical values through `LevelOne`:
+   - `uint256 schoolFeesBefore = levelOneProxy.getSchoolFeesCost();`
+   - `uint256 sessionEndBefore = levelOneProxy.getSessionEnd();`
+   - `uint256 bursaryBefore = levelOneProxy.bursary();`
+4. Deploy `LevelTwo` implementation.
+5. Simulate the upgrade (using `vm.etch` or direct proxy admin call to change implementation, bypassing the broken `graduateAndUpgrade`).
+6. Cast the proxy to `LevelTwo` and read the corrupted values.
+
+## Assertions
+
+After the upgrade to `LevelTwo`:
+
+```solidity
+// Core storage collision assertions
+assertEq(levelTwoProxy.sessionEnd(), schoolFeesBefore, "sessionEnd should read old schoolFees");
+assertEq(levelTwoProxy.bursary(), sessionEndBefore, "bursary should read old sessionEnd timestamp");
+assertEq(levelTwoProxy.cutOffScore(), bursaryBefore, "cutOffScore should read old bursary");
+
+// Optional deeper checks
+uint256 studentScore = levelTwoProxy.studentScore(studentAddr);
+assertTrue(studentScore != 100, "studentScore should be corrupted due to wrong mapping slot");
+```
+## Edge Cases / Notes
+
+- This PoC must **only** prove storage slot corruption. Do not mix it with the broken `graduateAndUpgrade()` (H-02) or wage math (H-03).
+- We will need to simulate the upgrade directly in the test (using `vm.etch` or proxy admin) because `graduateAndUpgrade()` is broken.
+- The goal is to show that after the upgrade, `LevelTwo` reads completely wrong values for `bursary`, `sessionEnd`, and `cutOffScore`.
+- Mappings (`studentScore`, `isStudent`) and arrays (`listOfStudents`) will also be corrupted due to shifted mapping seeds, this can be shown with at least one optional assertion.
+- No need to call any `LevelTwo` functions that require reinitialization for this PoC.
