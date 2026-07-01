@@ -17,6 +17,7 @@ I just audit because it's fun breaking things that are supposed to work.
 |----------------|----------------|------------|-------|
 | [PasswordStore](./2025-07-29-PasswordStore-audit.pdf)  | Shadow Audit   | Jul 2025   | Stored passwords on-chain. Classic. |
 | [PuppyRaffle](./2025-08-31-PuppyRaffle-audit.pdf)    | First Flight | Aug 2025   | Lottery of puppies, but randomness was rigged from the start. |
+| [Hawk High](./first-flight-reviews/flight-1/final-report.md) | First Flight | Jun 2026 | UUPS proxy school system — 3 Highs on the graduation/upgrade path |
 
 ## Tools I actually use
 

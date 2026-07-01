@@ -1,4 +1,4 @@
-# Hawk High Day 25 PoC Plan
+# Hawk High Day 25 H-02 PoC Plan
 
 ## Selected Finding
 
@@ -241,3 +241,74 @@ assertTrue(studentScore != 100, "studentScore should be corrupted due to wrong m
 - The goal is to show that after the upgrade, `LevelTwo` reads completely wrong values for `bursary`, `sessionEnd`, and `cutOffScore`.
 - Mappings (`studentScore`, `isStudent`) and arrays (`listOfStudents`) will also be corrupted due to shifted mapping seeds, this can be shown with at least one optional assertion.
 - No need to call any `LevelTwo` functions that require reinitialization for this PoC.
+
+
+
+**✅ Choice confirmed: M-01**
+
+**Finding selected:**  
+**[M-01] `graduateAndUpgrade()` can be called before the session ends**
+
+**Exact references (verified from source):**
+- `LevelOne.sol:269-274` → `startSession(uint256 _cutOffScore)` sets `sessionEnd = block.timestamp + 4 weeks`
+- `LevelOne.sol:295-312` → `graduateAndUpgrade(address _levelTwo, bytes memory)` has **no** `block.timestamp >= sessionEnd` check (only `onlyPrincipal`)
+
+---
+
+### Proposed `poc-plan.md` Section (M-01)
+
+I will add this as a new section at the end of the current file (after the H-01 section).
+
+```markdown
+# Hawk High Day 28 M-01 PoC Plan
+
+## Selected Finding
+[M-01] `graduateAndUpgrade()` can be called before the session ends
+
+## Bug Summary
+`startSession()` sets `sessionEnd = block.timestamp + 4 weeks`. However, `graduateAndUpgrade()` has no check that `block.timestamp >= sessionEnd`. The only access control is `onlyPrincipal`. As a result, the principal can trigger graduation and wage payouts immediately after (or even during) the session start.
+
+## Root Cause (exact lines)
+- `LevelOne.sol:269-274` — `startSession()` writes `sessionEnd = block.timestamp + 4 weeks`
+- `LevelOne.sol:295` — `graduateAndUpgrade(address _levelTwo, bytes memory)` signature
+- `LevelOne.sol:300-311` — the function body performs wage transfers and calls `_authorizeUpgrade` with **no** timing guard
+- Missing: any `require(block.timestamp >= sessionEnd, ...)` or equivalent check inside `graduateAndUpgrade()`
+
+## Expected Behavior
+- Principal must wait until `block.timestamp >= sessionEnd` (4 weeks after `startSession()`) before calling `graduateAndUpgrade()`.
+- Calling `graduateAndUpgrade()` before the session ends should revert.
+
+## Actual Behavior
+- Principal can call `graduateAndUpgrade()` at any time after `startSession()` (even in the same block or the next block).
+- The function executes wage transfers and the broken upgrade path without waiting for the intended review period.
+
+## Test Setup
+1. Deploy `LevelOne` behind proxy using `DeployLevelOne`.
+2. Add teachers and enroll students.
+3. Record `sessionEnd` right after calling `startSession(70)`.
+4. Immediately (same block or next block) attempt to call `graduateAndUpgrade()` as principal.
+5. The call should succeed (no revert) even though `block.timestamp < sessionEnd`.
+
+## Action
+```solidity
+vm.prank(principal);
+levelOneProxy.startSession(70);
+
+// Immediately call graduation (no time warp)
+vm.prank(principal);
+levelOneProxy.graduateAndUpgrade(levelTwoImpl, data);
+```
+
+## Assertions
+```solidity
+uint256 sessionEnd = levelOneProxy.getSessionEnd();
+
+// Core assertion: graduation succeeds before sessionEnd
+assertTrue(block.timestamp < sessionEnd, "test must run before session ends");
+assertGt(usdc.balanceOf(alice), 0, "wages were paid even though session had not ended");
+```
+
+## Edge Cases / Notes
+- This finding isolates the missing timing check. Do not mix it with H-02 (no actual upgrade) or H-03 (wage math).
+- The PoC should demonstrate that `graduateAndUpgrade()` can be called successfully with `block.timestamp < sessionEnd`.
+- Consider adding a secondary assertion that shows wages are paid early.
