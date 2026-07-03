@@ -1,50 +1,36 @@
-# Coach Handoff — Day 31 → Day 32
+# Coach Handoff — last updated: 2026-07-03
 
-## Date
-3 Jul 2026 (Day 31 compressed, plan Day 33)
+## Current state
 
-## State
-- Phase 3 checkpoint done. File: `audit-dojo/notes/checkpoint-phase3.md`
-- Flight 1 SEALED. Do not reopen.
-- Calendar drift: ~10 days behind plan daily schedule. Running compress mode (skipped plan Days 31-32 Flight 2 work).
-- 2 Jul was a brain-break skip.
+- Plan day (work stream): Day 34 (MultiSig spec)
+- Calendar drift: 8 days behind (plan Day 34 = 26 Jun, real date = 4 Jul)
+- Mode: compress (skipped plan Days 31–32 Flight 2 work)
+- Phase: 4 — Build and self-audit MultiSigWallet v1
 
-## Tomorrow = Day 32 = Plan Day 34
-**Task: MultiSig PLAN.md + architecture.md only. No Solidity.**
+## Last session shipped (3 Jul 2026)
 
-### Day 32 "done" definition (pre-committed today):
-Goal line, actor list, and function names exist in PLAN.md.
+- `notes/checkpoint-phase3.md` — Phase 3 checkpoint with counting, stronger/freeze/simpler sections, DM logged
+- `notes/coach-handoff.md` — first version, state handoff for tomorrow
+- `notes/meta-prompt-daily-launcher.md` — reusable meta-prompt for daily launcher generation
+- `notes/tracker.md` — Day 31 row added (2 Jul skip noted, ~10 day drift)
+- DM sent to @ShieldifyMartin about H-01 severity judgment (Tigerfrake DMs closed)
 
-### Smallest first slice (pre-committed today):
-Write the one-sentence goal line in PLAN.md. Nothing else until that line exists.
+## Live freeze risks
 
-### Top freeze risk:
-Rule 4 — "If stuck 20 minutes, shrink the task." Proven during checkpoint: asked for smallest slice, brain jumped to architecture, froze within minutes. Watch for this. If he's staring at "invariants" or "failure cases" and hasn't written anything in 20 min, tell him to skip it and write the next field he CAN fill.
+- Rule 4 break: jumps to "how" before nailing "what." Proven in real time during checkpoint — asked for smallest slice, brain went to architecture, froze in <15 min.
+- Blank-screen start is the highest risk in the entire plan. MultiSig from scratch = first original build since Phase 1.
+- "Invariants" and "failure cases" fields in PLAN.md are where freeze will hit. Pre-approved to skip and come back.
 
-### Key findings from checkpoint:
-- Stronger: storage layout comparison (guided→independent), cross-function reentrancy recognition, attack-narrative-before-code workflow
-- Freeze pattern: jumps to "how" before nailing "what." Architecture before goal. Solution before problem statement.
-- Rescue: re-read + trace call flow works for confusion freezes. Blank-screen freeze needs the "write one line, any line" protocol.
+## Tomorrow's first task (single sentence)
 
-## Portfolio (from disk)
-- 4 exploit PoCs (Phase 1)
-- 2 guided audit final reports (Phase 2)
-- 1 First Flight final report (Phase 3)
-- 1 personal checklist v1
-- 10 applications sent
-- 1 DM sent today to @ShieldifyMartin
+- Write `multisig-wallet/PLAN.md` (goal, actors, actions, storage, invariants, failure cases, events, function names, 12 test names) and `docs/architecture.md` (plain-English 4-step flow).
 
-## Rules to enforce tomorrow
-1. Rule 1: No blank .sol file — start with PLAN.md. (Tomorrow is literally just PLAN.md, so this should be easy.)
-2. Rule 4: 20 min freeze → shrink. The "invariants" and "failure cases" fields are where he'll freeze. Let him skip and come back.
-3. No "how" before "what." If he starts talking about N-of-N architecture before writing the goal sentence, stop him.
+## Tomorrow's first action (concrete, ≤ 30 min)
 
-## DM follow-up
-- @ShieldifyMartin DM'd about H-01 severity judgment. No response yet. Follow up in 3-4 days if nothing.
-- @Tigerfrake DMs closed — don't attempt again.
+- Clone audit-dojo, read this file, create `multisig-wallet/` repo, write the one-sentence goal line in PLAN.md. Nothing else until that line exists.
 
-## Plan reference
-- Plan file: `/home/user/uploads/updated paln.md`
-- Day 34 spec: PLAN.md + architecture.md + 1 application
-- Phase 4 must-have features: owners array, threshold, submit/confirm/revoke/execute transaction, events, tests, README, self-audit
-- Nice-to-haves (drop first if behind): EIP-712, factory, deploy script, Sepolia deployment
+## Do-not-reopen list
+
+- `first-flight-reviews/flight-1/final-report.md` — SEALED
+- `first-flight-reviews/flight-1/self-critique.md` — SEALED
+- All Phase 1/2/3 artifacts — read-only for reference
