@@ -1,33 +1,59 @@
-# Coach Handoff — last updated: 2026-07-03
+# Coach Handoff — last updated: 2026-07-06
 
 ## Current state
 
-- Plan day (work stream): Day 34 (MultiSig spec)
-- Calendar drift: 8 days behind (plan Day 34 = 26 Jun, real date = 4 Jul)
-- Mode: compress (skipped plan Days 31–32 Flight 2 work)
+- Plan day (work stream): Day 35 (Skeleton + constructor)
+- Calendar drift: 10 days (plan Day 35 = 27 Jun, real date = 6 Jul)
+- Mode: compress
 - Phase: 4 — Build and self-audit MultiSigWallet v1
 
-## Last session shipped (3 Jul 2026)
+## Last session shipped (6 Jul 2026)
 
-- `notes/checkpoint-phase3.md` — Phase 3 checkpoint with counting, stronger/freeze/simpler sections, DM logged
-- `notes/coach-handoff.md` — first version, state handoff for tomorrow
-- `notes/meta-prompt-daily-launcher.md` — reusable meta-prompt for daily launcher generation
-- `notes/tracker.md` — Day 31 row added (2 Jul skip noted, ~10 day drift)
-- DM sent to @ShieldifyMartin about H-01 severity judgment (Tigerfrake DMs closed)
+- `multisig-wallet/PLAN.md` — goal line, 3 actors (wallet owner, target address, attacker), 5 function names
+- `multisig-wallet/docs/architecture.md` — 4-step lifecycle flow with CEI pattern in step 4
+- DM sent to @unsafe_call (former Immunefi triager, Arbitrum Security Council)
+- Tracker updated: Day 32 row
 
-## Live freeze risks
+## What's done in PLAN.md vs what's deferred
 
-- Rule 4 break: jumps to "how" before nailing "what." Proven in real time during checkpoint — asked for smallest slice, brain went to architecture, froze in <15 min.
-- Blank-screen start is the highest risk in the entire plan. MultiSig from scratch = first original build since Phase 1.
-- "Invariants" and "failure cases" fields in PLAN.md are where freeze will hit. Pre-approved to skip and come back.
+**Done (minimum done-if met):**
+- Goal ✓
+- Actors ✓
+- Functions ✓
 
-## Tomorrow's first task (single sentence)
+**Deferred to Day 35 or later:**
+- Actions (what each actor can do)
+- Storage / state
+- Invariants / rules
+- Failure cases
+- Events
+- 12 test names
 
-- Write `multisig-wallet/PLAN.md` (goal, actors, actions, storage, invariants, failure cases, events, function names, 12 test names) and `docs/architecture.md` (plain-English 4-step flow).
+## Tomorrow's task (plan Day 35)
+
+**Focus:** Skeleton + constructor
+
+**Do:**
+- Create contract skeleton: SPDX, pragma, contract name, errors, events, storage, constructor, external functions, view functions
+- Implement constructor only: owner uniqueness validation, threshold validation
+- Write 4 tests: deploy with valid owners/threshold, revert on zero owners, revert on duplicate owner, revert on bad threshold
+
+**Write:** `docs/security-assumptions.md`
+
+**Done if:** constructor tests pass
 
 ## Tomorrow's first action (concrete, ≤ 30 min)
 
-- Clone audit-dojo, read this file, create `multisig-wallet/` repo, write the one-sentence goal line in PLAN.md. Nothing else until that line exists.
+- Re-read `multisig-wallet/PLAN.md`
+- Create `multisig-wallet/src/MultiSigWallet.sol` skeleton
+- Write the constructor with owner/threshold validation
+- Do not implement any other function yet
+
+## Live freeze risks
+
+- PLAN.md still missing 6 fields (actions, storage, invariants, failure cases, events, test names). If those block skeleton work, skip them and come back.
+- Constructor validation logic might trigger blank-screen. Rescue protocol: write the validation checks as comments first, then translate one at a time.
+- New repo, first real Solidity code since Phase 1. Highest freeze risk of Phase 4 is now.
 
 ## Do-not-reopen list
 
