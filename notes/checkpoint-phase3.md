@@ -2,14 +2,14 @@
 
 ## Counting
 
-| Metric | Count |
-|---|---|
-| Exploit PoCs (Phase 1) | 4 |
-| Guided audit reports (Phase 2) | 2 |
-| First Flight reports (Phase 3) | 1 |
-| Personal checklist versions | 1 |
-| Applications sent | 10 |
-| DMs sent | 1 (to @ShieldifyMartin) |
+| Metric                         | Count                   |
+| ------------------------------ | ----------------------- |
+| Exploit PoCs (Phase 1)         | 4                       |
+| Guided audit reports (Phase 2) | 2                       |
+| First Flight reports (Phase 3) | 1                       |
+| Personal checklist versions    | 1                       |
+| Applications sent              | 10                      |
+| DMs sent                       | 1 (to @ShieldifyMartin) |
 
 ## Stronger now
 

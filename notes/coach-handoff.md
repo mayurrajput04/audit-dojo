@@ -1,87 +1,96 @@
-# Coach Handoff — last updated: 2026-07-09
+# Coach Handoff — last updated: 2026-07-10
 
 ## Current state
 
-- Plan day (work stream): Day 36 (Submit transaction flow) — DONE
-- Calendar drift: ~12 days (plan Day 36 = 28 Jun, real date = 9 Jul), drift FLAT — did not grow this session
+- Plan day (work stream): Day 37 (Confirm transaction flow) — DONE
+- Calendar drift: ~12 days (plan Day 37 = 29 Jun, real date = 10 Jul), drift FLAT — did not grow this session
 - Mode: compress
 - Phase: 4 — Build and self-audit MultiSigWallet v1
 
-## Last session shipped (9 Jul 2026)
+## Last session shipped (10 Jul 2026)
 
-Batch 1 (skeleton + constructor):
-- `multisig-wallet/src/MultiSigWallet.sol` — storage (`owners`, `isOwner`, `threshold`), constructor with 4 validations, 5 tests green.
+Batch 1 — confirm flow:
 
-Batch 2 (today — submit flow):
-- `Transaction` struct added (`address to`, `uint256 value`, `bytes data`, `bool executed`) — defined before storage per Solidity convention
-- `Transaction[] public transactions` — no storage collision with existing vars
-- `onlyOwner` modifier — derived from PLAN.md actors list (`isOwner[msg.sender]` require)
-- `submitTransaction(address _to, uint256 _value, bytes calldata _data) external onlyOwner` — pushes struct, emits event
-- `event SubmitTransaction(address indexed owner, uint256 indexed txIndex, address indexed to, uint256 value, bytes data)`
-- `multisig-wallet/test/MultiSigWallet.t.sol` — 2 new tests (7/7 total green):
-  - `test_OwnerCanSubmitTransaction` — submits, destructures all 4 struct fields from `transactions(0)`, asserts match
-  - `test_RevertWhenNonOwnerSubmits` — non-owner expects `"not owner"` revert
-- `docs/architecture.md` — submit-flow implementation note appended at bottom, existing sections untouched
-- Tracker updated: Day 34/36 row, 9 Jul.
+- `multisig-wallet/src/MultiSigWallet.sol`:
+  - `isConfirmed` nested mapping added (`mapping(uint256 => mapping(address => bool))`)
+  - `confirmTransaction(uint256 _txIndex)` with 3 guards: `txIndex >= transactions.length` (bounds), `isConfirmed[_txIndex][msg.sender]` (duplicate), `transactions[_txIndex].executed` (already executed)
+  - 3 new custom errors: `MultiSigWallet__TxDoesNotExist`, `MultiSigWallet__TxAlreadyConfirmed`, `MultiSigWallet__TxAlreadyExecuted`
+  - `ConfirmTransaction(address indexed owner, uint256 indexed txIndex)` event
+  - `onlyOwner` modifier already existed, re-used for access control
+- `multisig-wallet/test/MultiSigWallet.t.sol` — 4 new tests (11/11 total green):
+  - `test_OwnerConfirmsSubmittedTx` — alice submits, confirms, asserts `isConfirmed(0, alice) == true`
+  - `test__DuplicateConfirmReverts` — alice confirms, confirms again, expects `TxAlreadyConfirmed` revert
+  - `test_NonOwnerConfirmReverts` — non-owner tries to confirm, expects `"not owner"` revert
+  - `test_ExecutedTxCannotBeConfirmed` — uses `vm.store` to set `transactions[0].executed = true` directly; expects `TxAlreadyExecuted` revert. This is a placeholder until `executeTransaction` is implemented (Day 39).
+
+Batch 2 — docs:
+
+- `multisig-wallet/docs/architecture.md` — confirm-flow implementation note appended (3 checks, CEI order, confirmation tracking storage shape, duplicate-action-prevention design note). Step 4 (execute) reworded to future tense. Security note reworded to future tense. Existing sections untouched.
+- `multisig-wallet/docs/security-assumptions.md` — written from scratch (8 assumptions: owner set correctness, threshold safety, atomic isolation, derived confirmation counts, no auto self-confirmation, executed tx finality, ETH default state, onlyOwner enforcement). Out-of-scope list included. Section 3 and 7 corrected to future tense for execute/receive.
+
+Batch 3 — career:
+
+- Resume fully rewritten: `audit-dojo/resume/MayurRajput_Resume.md` + `audit-dojo/resume/MayurRajput_Resume.pdf` (12 KB, one page)
+- Key changes: professional summary leads, specific finding counts (17 total, 9 High), Hawk High named as "independent CodeHawks First Flight", MultiSigWallet as in-progress project, foundry coverage/test numbers added, Cyfrin certs sectionized, weak additional projects cut
+- Binance Smart Contract Auditor — application submitted with updated resume (link: https://jobs.lever.co/binance/6f64f1c8-2fdc-4231-8da3-631ebdf3ae2a/apply)
+- Tracker updated: Day 37 row added, applications count = 1 (actual, not inflated)
+
+Tracker updated: Day 37 row, 10 Jul.
 
 ## Done-if check (verified on disk, not from pasted output)
 
-Submit flow works. Confirmed via direct `forge test -vvv` run in sandbox. 7/7 green. All 3 test obligations met (owner can submit, non-owner blocked, tx stored correctly — first test covers all 4 struct fields).
+Confirm tests pass. Confirmed via `forge test` run. 11/11 green. All 4 test obligations met (owner can confirm, duplicate confirm reverts, non-owner blocked, executed tx reverts).
 
 ## What's deferred / NOT done
 
-- `docs/security-assumptions.md` — NOT written. Was supposed to be folded into Day 36 write block or done if spare time. No spare time under 2-hr cap. Still deferred. **Consider making this the "write" deliverable for Day 37 (confirmTransaction) since that day's plan says "Add note on duplicate-action prevention" — fold security-assumptions into that same write block.**
+- `revokeConfirmation` — Day 38
+- `executeTransaction` — Day 39
+- `receive()` — not yet scheduled
+- `multisig-wallet` not yet pushed to GitHub under any account (repo doesn't exist yet — user must create it manually at github.com before next session)
 - PLAN.md still missing: actions, storage, invariants, failure cases, events, 12 test names. Same as before — deferred, not blocking.
-- Known inefficiency (not a bug, not fixed): threshold checks (`_threshold == 0`, `_threshold > _owners.length`) run *after* the duplicate-detection loop. Cosmetic for v1, correct behavior either way.
-- `PLAN.md` detail fields still unfilled. Non-blocking, but the gap grows wider each day.
+- Known inefficiency: threshold checks in constructor run after duplicate-detection loop. Not fixed, not a bug.
+- Resume: still needs MultiSigWallet section filled in once execute ships on Day 39
 
-## Tomorrow's task (plan Day 37 — Confirm transaction flow)
+## Tomorrow's task (plan Day 38 — Revoke confirmation flow)
 
-**Focus:** Confirm transaction flow
+**Focus:** Revoke confirmation flow
 
 **Learn:** Nothing new.
 
 **Do:**
-- Define confirmation tracking storage (mapping from txIndex to owner set, and a confirmation count per tx)
-- Implement `confirmTransaction(uint256 _txIndex)`
-- Prevent: double-confirm, confirm executed tx, confirm nonexistent tx
-- Event emission on confirm
 
-**Write:** 
-- Architecture note on duplicate-action prevention (confirm logic)
-- Optional but recommended: fold `docs/security-assumptions.md` into this write block since Day 36 didn't have spare time for it
+- Implement `revokeConfirmation(uint256 _txIndex)`
+- Must not revert if owner never confirmed in the first place (idempotent? or strict?)
+- Guards: tx exists, owner actually confirmed, tx not executed
+- Event: `RevokeConfirmation`
+- Tests: owner can revoke after confirming, cannot revoke if not confirmed, cannot revoke after execution
 
-**Tests:**
-- owner can confirm a submitted tx
-- duplicate confirm reverts
-- non-owner confirm reverts
-- executed tx cannot be confirmed
+**Write:** Update security assumptions with state-transition notes.
 
 **Career:** Send 1 application
 
-**Done if:** confirm tests pass
+**Done if:** revoke tests pass
 
 ## Tomorrow's first action (concrete, ≤ 30 min)
 
-1. Re-read this handoff (done — it's in front of you).
-2. Re-read `multisig-wallet/PLAN.md` — `confirmTransaction` is already listed in the functions section.
-3. Define confirmation tracking storage **before** writing the function body. You need:
-   - Something to track which owners confirmed which transaction (mapping or nested mapping)
-   - Something to count confirmations per transaction (uint256 per tx)
-4. Write `confirmTransaction(uint256 _txIndex) external onlyOwner {}` — signature only, compile, then access control, then body.
-
-Same discipline as today: storage first → signature only → compile → access control → body.
+1. Re-read this handoff.
+2. Ask yourself: should `revokeConfirmation` be idempotent (silent success if never confirmed) or strict (revert if not confirmed)? Both are valid. Pick one and be consistent with how `confirmTransaction` behaves.
+3. `confirmTransaction` reverts on duplicate — so `revokeConfirmation` should also be strict: revert if `!isConfirmed[_txIndex][msg.sender]`. This keeps the pair symmetrical.
+4. Add `isConfirmed[_txIndex][msg.sender] = false` to unset the confirmation.
+5. Same storage shape, same modifier, same discipline.
 
 ## Live freeze risks
 
-- Calendar drift held flat this session. 2-hour cap worked. Continue enforcing.
-- `confirmTransaction` is structurally similar to `submitTransaction` but the state is more complex (nested mapping vs. a simple array push). If the storage design feels ambiguous after 10 minutes, pause and sketch it on paper first — the `confirmations` mapping is the only new mental model today.
-- `docs/security-assumptions.md` is accumulating pressure. If it doesn't get done by Day 38 (revoke), it becomes a visible gap in the portfolio repo. Prioritize it in the write block on whichever day you feel most ahead.
+- Calendar drift held flat this session. 2-hour cap worked again.
+- `revokeConfirmation` mirrors `confirmTransaction` structurally — same storage, same modifier, inverse state. If confirm was solid, revoke should be straightforward. Main risk is the "idempotent vs strict" decision point.
+- `security-assumptions.md` is now written. Deferred pressure resolved.
+- Resume is updated and submitted. Deferred pressure resolved.
 
 ## Do-not-reopen list
 
 - `first-flight-reviews/flight-1/final-report.md` — SEALED
 - `first-flight-reviews/flight-1/self-critique.md` — SEALED
 - All Phase 1/2/3 artifacts — read-only for reference
-- `multisig-wallet/docs/architecture.md` — DONE, append-only (now has submit-flow note). Do not rewrite existing sections.
-- `multisig-wallet/src/MultiSigWallet.sol` — submit flow is shipped. Do not modify `submitTransaction`, `Transaction` struct, `transactions`, or `onlyOwner` during confirm/revoke/execute days unless a bug is found.
+- `multisig-wallet/docs/architecture.md` — DONE, append-only. Do not rewrite existing sections.
+- `multisig-wallet/src/MultiSigWallet.sol` — submit + confirm shipped. Do not modify submit, Transaction struct, transactions, onlyOwner, or isConfirmed during revoke/execute days unless a bug is found.
+- `multisig-wallet/docs/security-assumptions.md` — written. Append only after execute ships.
