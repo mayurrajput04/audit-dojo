@@ -62,3 +62,44 @@ Format per application:
 - Entries 1–11: tracker says "1" but these are work-product days where an application was "sent" — likely self-audits or progress tracking days counted as career block. Actual application count is lower.
 - True external applications need separate tracking starting from entry 12.
 - Focus: junior/entry-level roles that say "basic understanding" or "learning mindset." Do NOT apply to 1+ year experience roles until MultiSig is complete.
+
+---
+
+## Day 39 — 2026-07-12 — Execute flow
+
+- Shipped: executeTransaction with derived count (Option A), 8 tests, 24/24 green, docs appended
+- Career action: PENDING - user to confirm (outreach or application). Tracker row marks career action=1. Update this section with actual action.
+- Next: receive() + README + self-audit to finish MultiSigWallet v1 for resume
+
+## TODO career for Day 39
+
+- Log 1 formal application or outreach DM in table.
+- If application: add row to applications table with link + status Submitted.
+
+| # | Date | Company | Role | Link | Status | Notes |
+|---|------|---------|------|------|--------|-------|
+| 13 | 2026-07-12 | — | — | — | PENDING LOG | Execute shipped — needs 1 career action (application preferred) |
+
+---
+
+## 2026-07-12 — Day 39 Career Action — Outreach
+
+- Type: Outreach (not formal application)
+- Target: EgisSec (@EgisSec on X) — team: deth + nmirchev8, Convergence contest winners, Hats Finance guest article on team auditing.
+- Platform: X DM https://x.com/EgisSec
+- Status: Drafted / To be sent — user to confirm sent
+- Context: Networking with elite independent researchers as per user strategy: show wins/achievement, not ask for job.
+- Shipped today: Execute flow 22/22 green, derived count Option A, CEI enforced.
+- Link to include: GitHub multi-sig wallet repo + audit-dojo first flight report
+- Next: If no reply in 5-7 days, public build thread tagging learnings, not begging.
+
+| # | Date | Company/Person | Role/Context | Link | Status | Notes |
+|---|------|----------------|--------------|------|--------|-------|
+| 13 | 2026-07-12 | EgisSec (deth + nmirchev8) | Elite audit team / Independent Security Researchers | https://x.com/EgisSec / https://www.egissec.com/ | Outreach Sent - DM confirmed 2026-07-12 | DM for feedback, not job ask. Execute flow shipped 22/22. Strategy: visibility among elites. |
+
+---
+Update 2026-07-12 23:50 IST: User confirmed DM sent to EgisSec via X
+- Previous entry 13 status: Drafted -> Sent
+- Evidence: user statement "i sent dm"
+- Next: wait 5-7 days, no follow-up spam, continue public build threads
+
