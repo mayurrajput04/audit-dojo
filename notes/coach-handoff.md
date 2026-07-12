@@ -157,3 +157,37 @@ Recommended next slice:
 1. Review `multisig-wallet/docs/self-audit.md` and decide whether zero-address owner validation should stay as an accepted v1 limitation or become a follow-up patch.
 2. If no follow-up patch is taken, move to next plan day with MultiSigWallet v1 considered package-ready for portfolio use.
 3. Refresh this handoff at the end of the next session.
+
+---
+
+## Progress update — 2026-07-13 (Day 41 — same calendar day as Day 40)
+
+**Decision taken:** Zero-address owner → **Patch path** (Path A).
+
+**Code changes:**
+- `multisig-wallet/src/MultiSigWallet.sol`:
+  - Added `error MultiSigWallet__ZeroAddressOwner()`.
+  - Constructor loop now checks `_owners[i] == address(0)` after the duplicate check, reverts with `ZeroAddressOwner` if true.
+- `multisig-wallet/test/MultiSigWallet.t.sol`:
+  - `test_RevertOnZeroAddressOwner` added — 4-element array (3 valid + `address(0)`), expects `ZeroAddressOwner` revert.
+
+**Docs changes:**
+- `README.md`: zero-address owner limitation struck through and marked fixed.
+- `docs/self-audit.md`: Note 1 appended with resolution block; Conclusion updated to reflect 1 of 3 notes resolved.
+- `docs/security-assumptions.md`: Appended with zero-address hardening note (Day 41) — enforcement location, rationale, test coverage.
+
+**Test result:** `forge test` — **24/24 green** (verified by coach).
+
+**Tracker:** Day 41 row added, career action = 0 (no external action taken). Drift: ~10 days (plan 3 Jul, real 13 Jul). Compressed 2 plan days into 1 calendar day.
+
+**Do-not-reopen confirmed:**
+- `executeTransaction` untouched ✅
+- `receive()` untouched ✅
+- No deposit events, no `fallback()`, no owner management added ✅
+- No new courses/resources consumed ✅
+
+**Next recommended slice (Day 42):**
+Original plan Day 42 was "Self-audit pass 1" — but self-audit is already started and 1 of 3 notes resolved. Options for next session:
+1. Broaden self-audit (deeper invariant review, checklist pass on remaining notes).
+2. Shift toward Phase 5 (resume update with MultiSig, application tracker setup).
+3. If career action was 0 for 2 days straight, make Day 42 a career day (application or outreach).
