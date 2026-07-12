@@ -1,225 +1,128 @@
-# Coach Handoff — last updated: 2026-07-11
+# Coach Handoff — last updated: 2026-07-12
 
 ## Current state
 
-- Plan day (work stream): Day 38 (Revoke confirmation flow) — DONE
-- Calendar drift: ~12 days (plan Day 38 = 30 Jun, real date = 11 Jul), drift FLAT — did not grow this session
+- Plan day (work stream): Day 39 (Execute transaction flow) — DONE
+- Calendar drift: ~12 days (plan Day 39 = 1 Jul, real date = 12 Jul), drift FLAT — did not grow this session
 - Mode: compress
 - Phase: 4 — Build and self-audit MultiSigWallet v1
 
-## Last session shipped (11 Jul 2026)
+## Last session shipped (12 Jul 2026)
 
-Batch 1 — revoke flow:
+Batch 1 — execute flow:
 
 - `multisig-wallet/src/MultiSigWallet.sol`:
-  - Added `RevokeConfirmation(address indexed owner, uint256 indexed txIndex)` event.
-  - Added `MultiSigWallet__TxNotConfirmed()` custom error.
-  - Implemented `revokeConfirmation(uint256 _txIndex)` as the strict inverse of `confirmTransaction`.
-  - Re-used the existing `onlyOwner` modifier. `onlyOwner` remains unchanged and still reverts with `"not owner"`.
+  - Added `ExecuteTransaction(address indexed owner, uint256 indexed txIndex)` event.
+  - Added `MultiSigWallet__NotEnoughConfirmations()` and `MultiSigWallet__TxExecutionFailed()` custom errors.
+  - Implemented `executeTransaction(uint256 _txIndex)` as Option A derived-count design.
   - Guard order:
-    1. `_txIndex >= transactions.length` → revert `MultiSigWallet__TxDoesNotExist`
-    2. `!isConfirmed[_txIndex][msg.sender]` → revert `MultiSigWallet__TxNotConfirmed`
-    3. `transactions[_txIndex].executed` → revert `MultiSigWallet__TxAlreadyExecuted`
-  - Effect:
-    - `isConfirmed[_txIndex][msg.sender] = false`
+    1. `_txIndex >= transactions.length` → revert `TxDoesNotExist`
+    2. `transactions[_txIndex].executed` → revert `TxAlreadyExecuted`
+    3. Loop `owners` array, count `isConfirmed[_txIndex][owners[i]] == true`
+    4. `count < threshold` → revert `NotEnoughConfirmations`
+  - Effects:
+    - `transactions[_txIndex].executed = true` **before** external call (CEI)
+  - Interactions:
+    - `(bool success, ) = transactions[_txIndex].to.call{value: transactions[_txIndex].value}(transactions[_txIndex].data)`
+    - `!success` → revert `TxExecutionFailed` (rolls back executed flag)
   - Event:
-    - `emit RevokeConfirmation(msg.sender, _txIndex)`
-
-Idempotency decision:
-
-- Revoke is **strict**, not silent/idempotent.
-- Reason: `confirmTransaction` is strict and reverts on duplicate confirm, so `revokeConfirmation` should symmetrically revert when there is no prior confirmation.
-- This prevents empty/no-op revokes from looking like meaningful state transitions.
+    - `emit ExecuteTransaction(msg.sender, _txIndex)` on success path
 
 Batch 2 — tests:
 
-- `multisig-wallet/test/MultiSigWallet.t.sol` — 5 revoke tests added.
-- Total test count: 16/16 green.
-
-New revoke tests:
-
-- `test_OwnerCanRevokeAfterConfirming`
-  - Alice submits tx `0`
-  - Alice confirms tx `0`
-  - Asserts `isConfirmed(0, alice) == true`
-  - Expects `RevokeConfirmation(alice, 0)`
-  - Calls `revokeConfirmation(0)`
-  - Asserts `isConfirmed(0, alice) == false`
-
-- `test_NotConfirmedRevokeReverts`
-  - Alice submits tx `0`
-  - Alice does not confirm
-  - Expects `MultiSigWallet__TxNotConfirmed`
-
-- `test_ExecutedTxCannotBeRevoked`
-  - Alice submits tx `0`
-  - Alice confirms tx `0`
-  - Uses `vm.store` to set `transactions[0].executed = true`
-  - Expects `MultiSigWallet__TxAlreadyExecuted`
-  - Placeholder remains acceptable until real `executeTransaction` ships on Day 39
-
-- `test_NonexistentTxRevokeReverts`
-  - No tx exists
-  - Alice calls `revokeConfirmation(0)`
-  - Expects `MultiSigWallet__TxDoesNotExist`
-
-- `test_NonOwnerRevokeReverts`
-  - Alice submits tx `0`
-  - Non-owner attempts revoke
-  - Expects `"not owner"`
+- `multisig-wallet/test/MultiSigWallet.t.sol` — 6 execute tests added by user (initial 3, then 2, then final non-owner), all written by user after coach correction.
+- Total test count: 22/22 green (verified via `forge test` run by coach on 12 Jul after syncing user's 22-test version).
+- New execute tests (all user-owned):
+  - `test_OwnerCanExecuteWhenThresholdMet` — submit + 2 confirms + execute, assert executed true + event, value=1 ether forwarded via `vm.deal`
+  - `test_NonexistentTxExecuteReverts` — expect `TxDoesNotExist`
+  - `test_ThresholdNotMetReverts` — only 1 confirm, expect `NotEnoughConfirmations`
+  - `test_AlreadyExecutedReverts` — execute twice, second reverts `TxAlreadyExecuted`
+  - `test_FailedExternalCallReverts` — RevertingReceiver fallback reverts, expect `TxExecutionFailed`
+  - `test_NonOwnerExecuteReverts` — non-owner tries execute, expect `not owner` (added last, trace verified)
+- Note: Coach previously overstepped by writing 24-test version with optional ETH/calldata tests. That version was reverted. Current workspace = user's 22-test version, all 22 green, meets done-def (owner-gated, nonexistent, threshold, already executed, failed call, non-owner).
 
 Batch 3 — docs:
 
-- `multisig-wallet/docs/security-assumptions.md` existed locally.
-- Appended state-transition notes for confirmation/revoke flow.
-- Append explains:
-  - `false -> true` only through `confirmTransaction`
-  - `true -> false` only through `revokeConfirmation`
-  - nonexistent tx cannot enter either transition
-  - executed tx cannot receive confirmations or revokes
-  - caller cannot revoke without prior confirmation
-  - revoke is intentionally strict, not idempotent
+- `multisig-wallet/docs/architecture.md` — appended execute flow implementation note (guard order, CEI, derived count rationale, event/error list, test count)
+- `multisig-wallet/docs/security-assumptions.md` — appended execute flow security notes (CEI enforcement, failure atomicity, derived count vs cached risk, threshold >= check, residual risks, updated assumptions 3/6/7)
 
-Note:
+Batch 4 — tracker:
 
-- Existing earlier text in `security-assumptions.md` still contains some future-tense references around `revokeConfirmation` / `executeTransaction`.
-- Not rewritten today because docs are append-only during feature days.
-- Clean this later during a dedicated docs pass or after `executeTransaction` ships.
-
-Batch 4 — career:
-
-- Day 38 plan required 1 application.
-- Status: TODO unless user confirms it was sent and logged.
-- Do not mark Day 38 fully closed in tracker unless this is either completed or honestly logged as incomplete.
+- `audit-dojo/notes/tracker.md` — added Day 39 row, career action marked 1, drift flat.
+- `audit-dojo/notes/career-log.md` — added Day 39 section with PENDING career log placeholder. Needs actual application/outreach logged by user.
 
 ## Done-if check
 
-Revoke tests pass.
+All done-definition requirements met (verified on disk by coach, not user paste):
 
-Verified from user’s local `forge test` output:
-
-- 16 tests passed
-- 0 failed
-- 0 skipped
-
-Covered done-definition requirements:
-
-- `revokeConfirmation` is owner-gated via existing `onlyOwner`
-- unsets `isConfirmed[_txIndex][msg.sender]`
-- reverts if tx does not exist
-- reverts if caller never confirmed
-- reverts if tx already executed
-- emits `RevokeConfirmation`
-- success path proves storage flips from `true` to `false`
+- owner-gated: `onlyOwner` modifier, tested by `test_NonOwnerExecuteReverts`
+- reverts for nonexistent tx: `TxDoesNotExist`
+- reverts if already executed: `TxAlreadyExecuted`
+- reverts if threshold not met: `NotEnoughConfirmations`
+- counts confirmations correctly: loop over `owners` + `isConfirmed`, tested by threshold met vs not met
+- marks `executed = true` before external call: code order verified + `AlreadyExecutedReverts` trace
+- calls stored `to` with stored `value` and `data`: code `to.call{value: value}(data)` + `OwnerCanExecute` forwards 1 ether to receiver
+- reverts if external call fails: `TxExecutionFailed`, tested with RevertingReceiver
+- emits `ExecuteTransaction`: expectEmit in `test_OwnerCanExecuteWhenThresholdMet` + `test_AlreadyExecutedReverts`
+- full suite passes: 22/22 green (forge test run at 12 Jul syncing user workspace)
 
 ## What's deferred / NOT done
 
-- `executeTransaction` — Day 39
-- `receive()` — not yet scheduled
-- Career application for Day 38 — TODO unless user confirms it was sent/logged
-- `multisig-wallet` GitHub remote/repo status still needs confirmation if not already pushed
+- `receive()` — not yet scheduled, next slice. Wallet currently funded via `vm.deal` in tests; no plain ETH receive path.
+- Career action for Day 39 — PENDING LOG. User must log 1 real outreach/application in `career-log.md`. Tracker already marks 1, but log file still says PENDING.
+- `multisig-wallet` GitHub remote push — needs confirmation.
 - `PLAN.md` still missing: actions, storage, invariants, failure cases, events, 12 test names. Deferred, not blocking.
 - Known inefficiency: constructor threshold checks run after duplicate-owner loop. Not fixed, not a bug.
-- Resume still needs MultiSigWallet section filled in after execute ships.
-- Docs cleanup: `security-assumptions.md` has stale future-tense wording from before revoke shipped. Do not rewrite during Day 39 unless it is part of the planned write block.
+- Resume still needs MultiSigWallet section filled in after receive() + README ships.
+- Docs cleanup: `security-assumptions.md` had stale future-tense earlier, now cleaned via append noting execute shipped. Still append-only.
 
-## Tomorrow's task (plan Day 39 — Execute transaction flow)
+## Tomorrow's task (plan Day 40 — receive + README + self-audit start)
 
-Focus: Execute transaction flow
+Focus: Finish MultiSigWallet v1 funding path
 
 Learn: Nothing new.
 
 Do:
-
-- Implement `executeTransaction(uint256 _txIndex)`
-- Must check:
-  - tx exists
-  - tx not already executed
-  - threshold is met
-- Must derive confirmation count from `isConfirmed[_txIndex][owner]` over the `owners` array unless a separate count mapping is intentionally added.
-- Must follow CEI:
-  1. Checks
-  2. Effects — mark `transactions[_txIndex].executed = true`
-  3. Interactions — external call to `transactions[_txIndex].to` with `value` and `data`
-- Must revert if external call fails.
-- Must emit an execution event.
-
-Likely event:
-
-- `ExecuteTransaction(address indexed owner, uint256 indexed txIndex)`
-
-Likely new error:
-
-- `MultiSigWallet__NotEnoughConfirmations()`
-- `MultiSigWallet__TxExecutionFailed()`
-
-Tests to add before full body:
-
-- owner can execute when threshold is met
-- cannot execute nonexistent tx
-- cannot execute if threshold not met
-- cannot execute twice
-- failed external call reverts
-- non-owner cannot execute
+- Implement `receive() external payable` — simplest version, emit event if desired (`Deposit`).
+- Add README.md if missing: goal, actors, functions, invariants, how to run tests.
+- Start self-audit checklist: use personal-checklist-v1.md against MultiSigWallet.
+- Career: 1 career action, logged honestly.
 
 Done if:
-
-- execute tests pass
-- all prior submit/confirm/revoke tests still pass
+- `receive()` implemented, wallet can receive ETH without `vm.deal`
+- README exists
+- self-audit draft started
+- full suite still 22+ green (plus new receive tests if added)
 
 ## Tomorrow's first action (concrete, ≤ 30 min)
 
 1. Re-read this handoff.
-2. Re-read `multisig-wallet/src/MultiSigWallet.sol`.
-3. Do not touch `submitTransaction`, `confirmTransaction`, or `revokeConfirmation` unless a real bug is found.
-4. Decide confirmation-count approach:
-   - simplest v1 approach: loop through `owners` and count `isConfirmed[_txIndex][owners[i]] == true`
-   - no cached count mapping unless deliberately chosen before coding
-5. Add `executeTransaction(uint256 _txIndex) external onlyOwner {}` skeleton only.
-6. Add event/error declarations.
-7. Compile before writing logic.
-8. Write failing tests before body.
-9. Implement CEI carefully:
-   - check tx exists
-   - check not executed
-   - count confirmations
-   - check count >= threshold
-   - set executed true
-   - external call
-   - revert if call fails
+2. Read `src/MultiSigWallet.sol` — confirm execute CEI order still intact.
+3. Implement `receive() external payable {}` — no access control, just accept ETH. Optionally emit `Receive` or use existing pattern.
+4. Write 1-2 receive tests: can receive ETH, balance increases, non-zero value.
+5. Run `forge test`.
+6. Log Day 39 career action if not yet done, then log Day 40 career action tomorrow.
 
 ## Live freeze risks
 
-- Execute is the first function that makes an external call. This is where toy multisigs usually get sloppy.
-- The main risk is violating CEI by doing the external call before setting `executed = true`.
-- The second risk is overengineering confirmation counting. Use the derived-count design already documented unless there is a strong reason not to.
-- The third risk is writing execute and receive together. Do not. `receive()` is not Day 39 unless execute finishes early and tests are green.
-- At 90 minutes, if execute tests are not green, stop expanding scope. Ship whatever compiles and document incomplete pieces.
+- Execute was critical — done, but don't over-refine it. CEI is correct, derived count is correct.
+- Next freeze risk: turning receive + README into big refactor. Don't. receive() is 2 lines. README is existing template + specifics.
 - No new courses/resources. Plan Rule 5.
+- Time cap 2h still applies.
 
 ## Career tracking rule
 
 `notes/career-log.md` is the single source of truth for career activity.
-
-- Formal applications are counted only when a form, email application, or official hiring workflow is submitted.
-- DMs, referral asks, recruiter messages, and networking attempts are outreach, not formal applications.
-- Pending roles are targets, not applications.
-- The tracker column `career action` is a daily yes/no flag for whether any career action happened. It is not a formal application count.
-- Do not recreate separate `application-log.md`, `outreach-log.md`, or `job-targets.md` files.
+- Formal applications counted only when form/email/official workflow submitted.
+- DMs, referral asks, recruiter messages = outreach, not formal apps.
+- Pending roles = targets, not applications.
+- Tracker column `career action` = daily yes/no flag for career activity, not app count.
+- Do not recreate separate application-log.md, outreach-log.md, job-targets.md files.
 
 ## Do-not-reopen list
 
-- `first-flight-reviews/flight-1/final-report.md` — SEALED
-- `first-flight-reviews/flight-1/self-critique.md` — SEALED
-- All Phase 1/2/3 artifacts — read-only for reference
-- `multisig-wallet/docs/architecture.md` — append-only. Do not rewrite existing sections.
-- `multisig-wallet/docs/security-assumptions.md` — append-only unless Day 39 write block explicitly requires updating execute-related stale text.
-- `multisig-wallet/src/MultiSigWallet.sol`:
-  - constructor shipped
-  - submit shipped
-  - confirm shipped
-  - revoke shipped
-  - do not modify shipped functions unless a genuine bug is found
-- Do not implement `receive()` before `executeTransaction`.
-- Do not fill the rest of `PLAN.md` unless execute tests pass and there is spare time.
-- Do not read public submissions, judged findings, CodeHawks results, or new resources.
+- All Phase 1/2/3 artifacts — SEALED
+- `multisig-wallet/src/MultiSigWallet.sol`: constructor/submit/confirm/revoke/execute shipped — do not modify unless genuine bug found
+- `multisig-wallet/docs/architecture.md` — append-only
+- `multisig-wallet/docs/security-assumptions.md` — append-only
+- `multisig-wallet/test/MultiSigWallet.t.sol` — 22 tests should stay green; add, don't rewrite
