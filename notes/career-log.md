@@ -65,29 +65,12 @@ Format per application:
 
 ---
 
-## Day 39 — 2026-07-12 — Execute flow
-
-- Shipped: executeTransaction with derived count (Option A), 8 tests, 24/24 green, docs appended
-- Career action: PENDING - user to confirm (outreach or application). Tracker row marks career action=1. Update this section with actual action.
-- Next: receive() + README + self-audit to finish MultiSigWallet v1 for resume
-
-## TODO career for Day 39
-
-- Log 1 formal application or outreach DM in table.
-- If application: add row to applications table with link + status Submitted.
-
-| # | Date | Company | Role | Link | Status | Notes |
-|---|------|---------|------|------|--------|-------|
-| 13 | 2026-07-12 | — | — | — | PENDING LOG | Execute shipped — needs 1 career action (application preferred) |
-
----
-
 ## 2026-07-12 — Day 39 Career Action — Outreach
 
 - Type: Outreach (not formal application)
 - Target: EgisSec (@EgisSec on X) — team: deth + nmirchev8, Convergence contest winners, Hats Finance guest article on team auditing.
 - Platform: X DM https://x.com/EgisSec
-- Status: Drafted / To be sent — user to confirm sent
+- Status: Sent — confirmed by user on 2026-07-12
 - Context: Networking with elite independent researchers as per user strategy: show wins/achievement, not ask for job.
 - Shipped today: Execute flow 22/22 green, derived count Option A, CEI enforced.
 - Link to include: GitHub multi-sig wallet repo + audit-dojo first flight report

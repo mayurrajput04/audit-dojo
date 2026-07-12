@@ -1,9 +1,9 @@
-# Coach Handoff — last updated: 2026-07-12
+# Coach Handoff — last updated: 2026-07-13 (late)
 
 ## Current state
 
-- Plan day (work stream): Day 39 (Execute transaction flow) — DONE
-- Calendar drift: ~12 days (plan Day 39 = 1 Jul, real date = 12 Jul), drift FLAT — did not grow this session
+- Plan day (work stream): Day 40 (Receive path + README + self-audit start) — DONE
+- Calendar drift: ~12 days (plan Day 40 = 2 Jul, real date = 13 Jul), drift FLAT — did not grow this session
 - Mode: compress
 - Phase: 4 — Build and self-audit MultiSigWallet v1
 
@@ -126,3 +126,34 @@ Done if:
 - `multisig-wallet/docs/architecture.md` — append-only
 - `multisig-wallet/docs/security-assumptions.md` — append-only
 - `multisig-wallet/test/MultiSigWallet.t.sol` — 22 tests should stay green; add, don't rewrite
+
+---
+
+## Progress update — 2026-07-13 (Day 40)
+
+State re-check after syncing `audit-dojo` to latest remote head:
+- `audit-dojo` pulled from `62f63b3` to `bb01f88`.
+- `notes/career-log.md` now includes the Day 39 EgisSec outreach with final status **Sent**.
+- A stale Day 39 placeholder in `career-log.md` conflicted with the confirmed entry (`24/24` / pending log). That stale block was removed locally so the file has one truthful Day 39 record.
+
+MultiSigWallet progress completed in local workspace on 2026-07-13:
+- `multisig-wallet/src/MultiSigWallet.sol` now has `receive() external payable {}`.
+- `multisig-wallet/test/MultiSigWallet.t.sol` now includes `test_CanReceiveETH()`.
+- `multisig-wallet/docs/architecture.md` appended with receive-flow note.
+- `multisig-wallet/docs/security-assumptions.md` appended with receive-path security note.
+- `multisig-wallet/README.md` replaced Foundry boilerplate with project README.
+- `multisig-wallet/docs/self-audit.md` created with 3 checklist-based notes:
+  1. zero-address owner not rejected
+  2. `receive()` has no deposit event
+  3. insufficient balance is folded into generic `TxExecutionFailed`
+- `forge test` run by coach after receive/README state: **23/23 green**.
+
+Day 40 closure status:
+- `audit-dojo/notes/tracker.md` now has the Day 40 row.
+- No Day 40 career action was taken. Per user instruction, do **not** create a fake `career-log.md` entry for today.
+- Day closed honestly with `career action = 0` in tracker.
+
+Recommended next slice:
+1. Review `multisig-wallet/docs/self-audit.md` and decide whether zero-address owner validation should stay as an accepted v1 limitation or become a follow-up patch.
+2. If no follow-up patch is taken, move to next plan day with MultiSigWallet v1 considered package-ready for portfolio use.
+3. Refresh this handoff at the end of the next session.
