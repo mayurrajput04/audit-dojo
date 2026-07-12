@@ -88,10 +88,9 @@ Note:
 
 Batch 4 — career:
 
-- No formal application submitted on Day 38.
-- Targeted X DM outreach sent to Ihtisham / @ihtishamSudo asking for junior/associate smart contract security application route.
-- Logged in `audit-dojo/notes/career-log.md` under Outreach.
-- Do not count this as a formal application.
+- Day 38 plan required 1 application.
+- Status: TODO unless user confirms it was sent and logged.
+- Do not mark Day 38 fully closed in tracker unless this is either completed or honestly logged as incomplete.
 
 ## Done-if check
 
@@ -117,7 +116,7 @@ Covered done-definition requirements:
 
 - `executeTransaction` — Day 39
 - `receive()` — not yet scheduled
-- Formal application for Day 38 — not submitted; targeted DM outreach was sent and logged in `notes/career-log.md` instead
+- Career application for Day 38 — TODO unless user confirms it was sent/logged
 - `multisig-wallet` GitHub remote/repo status still needs confirmation if not already pushed
 - `PLAN.md` still missing: actions, storage, invariants, failure cases, events, 12 test names. Deferred, not blocking.
 - Known inefficiency: constructor threshold checks run after duplicate-owner loop. Not fixed, not a bug.
@@ -197,6 +196,16 @@ Done if:
 - The third risk is writing execute and receive together. Do not. `receive()` is not Day 39 unless execute finishes early and tests are green.
 - At 90 minutes, if execute tests are not green, stop expanding scope. Ship whatever compiles and document incomplete pieces.
 - No new courses/resources. Plan Rule 5.
+
+## Career tracking rule
+
+`notes/career-log.md` is the single source of truth for career activity.
+
+- Formal applications are counted only when a form, email application, or official hiring workflow is submitted.
+- DMs, referral asks, recruiter messages, and networking attempts are outreach, not formal applications.
+- Pending roles are targets, not applications.
+- The tracker column `career action` is a daily yes/no flag for whether any career action happened. It is not a formal application count.
+- Do not recreate separate `application-log.md`, `outreach-log.md`, or `job-targets.md` files.
 
 ## Do-not-reopen list
 

@@ -1,5 +1,3 @@
-<!-- Career action column: 1 means a career action was completed that day (formal application, outreach DM, referral ask, recruiter message, or portfolio/career admin). It is not a formal application count. Formal application truth lives in `notes/career-log.md`. -->
-
 | date | main task | shipped artifact | career action | blocker |
 |------|-----------|-----------------|--------------|---------|
 | 2026-05-24 | Reset and setup |  epo structure (folders + .gitkeep), baseline.md, tracker.md, definition of success, GitHub bio updated | 0  | none |
