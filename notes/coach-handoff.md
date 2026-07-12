@@ -88,9 +88,10 @@ Note:
 
 Batch 4 — career:
 
-- Day 38 plan required 1 application.
-- Status: TODO unless user confirms it was sent and logged.
-- Do not mark Day 38 fully closed in tracker unless this is either completed or honestly logged as incomplete.
+- No formal application submitted on Day 38.
+- Targeted X DM outreach sent to Ihtisham / @ihtishamSudo asking for junior/associate smart contract security application route.
+- Logged in `audit-dojo/notes/career-log.md` under Outreach.
+- Do not count this as a formal application.
 
 ## Done-if check
 
@@ -116,7 +117,7 @@ Covered done-definition requirements:
 
 - `executeTransaction` — Day 39
 - `receive()` — not yet scheduled
-- Career application for Day 38 — TODO unless user confirms it was sent/logged
+- Formal application for Day 38 — not submitted; targeted DM outreach was sent and logged in `notes/career-log.md` instead
 - `multisig-wallet` GitHub remote/repo status still needs confirmation if not already pushed
 - `PLAN.md` still missing: actions, storage, invariants, failure cases, events, 12 test names. Deferred, not blocking.
 - Known inefficiency: constructor threshold checks run after duplicate-owner loop. Not fixed, not a bug.
