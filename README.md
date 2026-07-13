@@ -13,9 +13,10 @@ This repo is my public training log: exploit PoCs, guided audit reports, checkli
 |---|---:|---|
 | Core exploit PoCs | 4 shipped | [`self-audits/exploit-pocs/`](self-audits/exploit-pocs/) |
 | Guided audits | 2 completed | [`guided-audits/puppy-raffle/`](guided-audits/puppy-raffle/), [`guided-audits/thunder-loan/`](guided-audits/thunder-loan/) |
+| First Flight / solo reviews | completed | [`first-flight-reviews/flight-1/final-report.md`](first-flight-reviews/flight-1/final-report.md) |
+| MultiSigWallet v1 | completed | [https://github.com/samuraiigintoki/multisig-wallet](https://github.com/samuraiigintoki/multisig-wallet) |
 | Personal audit checklist | v1 active | [`checklists/personal-checklist-v1.md`](checklists/personal-checklist-v1.md) |
 | Progress tracker | active | [`notes/tracker.md`](notes/tracker.md) |
-| First Flight / solo reviews | next | [`first-flight-reviews/`](first-flight-reviews/) |
 
 ---
 
@@ -44,6 +45,30 @@ _If you can’t spot the bug, you’re the liquidity._
 - **6 High**, **2 Medium**, **1 Informational** findings documented.
 - PoCs exist for deposit/exchange-rate insolvency, oracle manipulation, and upgrade storage collision.
 - Checklist expanded with upgradeable storage, oracle/pricing, flash loan safety, and timelock/centralization questions.
+
+---
+
+## Phase 3 - First Flight Reviews (CodeHawks)
+
+| # | Protocol | Type | Focus Areas | Final Report |
+|---|---|---|---|---|
+| 1 | **Hawk High** | First Flight (solo review) | Proxy upgradeability (`ERC1967`), storage layout collisions, access control, logic bugs | [`final-report.md`](first-flight-reviews/flight-1/final-report.md) |
+
+### Current Hawk High result
+
+- **15 documented findings: 3 High, 5 Medium, 5 Low, 2 Informational**
+- 3 High-severity issues reproduced and verified with standalone Foundry PoCs (`first-flight-reviews/flight-1/pocs/`).
+- Note: This is an archived training/contest review, not a paid client audit or production finding.
+
+---
+
+## Phase 4 - MultiSigWallet v1
+
+Standalone security-focused repository: [https://github.com/samuraiigintoki/multisig-wallet](https://github.com/samuraiigintoki/multisig-wallet)
+
+- **Architecture:** Fixed-owner multisig with `submitTransaction`, `confirmTransaction`, `revokeConfirmation`, and `executeTransaction` lifecycle plus `receive()` funding path.
+- **Security Hardening:** Strict Checks-Effects-Interactions (CEI), zero-address constructor validation (`MultiSigWallet__ZeroAddressOwner`), duplicate confirmation/revoke guards, and execution-failure rollback.
+- **Verification:** Self-audited against personal checklist (`docs/self-audit.md`) with **24 passing Foundry tests** (`24/24` green).
 
 ---
 
@@ -96,7 +121,9 @@ Older PDF reports live in [`archive/`](archive/).
 
 ---
 
-**Shipped by:** Gintoki Sakata  
+**Shipped by:** Gintoki Sakata / Mayur Rajput  
 **Tracked in:** [`notes/tracker.md`](notes/tracker.md)  
+**Canonical Recruiter Portfolio:** [mayurrajput04](https://github.com/mayurrajput04) (`audit-dojo` main repository)  
+**Security Dev & Commit Log Identity:** [samuraiigintoki](https://github.com/samuraiigintoki) (`multisig-wallet` & commit history)  
 **LinkedIn:** https://www.linkedin.com/in/samuraiigintoki  
 **Twitter/X:** https://x.com/samuraigintokii

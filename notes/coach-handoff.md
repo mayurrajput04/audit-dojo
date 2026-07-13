@@ -224,3 +224,42 @@ Original plan Day 42 was "Self-audit pass 1" — but self-audit is already start
 **Next slice:**
 - Do not reopen MultiSig engineering.
 - Treat the portfolio gaps as packaging work for the next selected plan day; prioritize identity/pins and stale README facts over cosmetic rewriting.
+
+---
+
+## Progress update — 2026-07-13 (Portfolio Packaging & Disk Truth Cleanup)
+
+**Decision taken on GitHub identities:**
+- `mayurrajput04` (`Mayur Rajput`) is designated the canonical recruiter-facing profile and primary portfolio root (`audit-dojo`).
+- `samuraiigintoki` (`Gintoki Sakata`) is explicitly clarified as the dedicated security development and daily commit-graph identity where `multisig-wallet` lives.
+- Both identities and their respective roles are now explicitly documented in `audit-dojo/README.md`.
+
+**Disk truth corrections shipped (Slice 1 & 2):**
+- `multisig-wallet/README.md`:
+  - Updated test count from `23 / 23 passing` to `24 / 24 passing`.
+  - Added `rejects zero-address owners` to the `constructor(...)` summary.
+  - Added `docs/self-audit.md` to `Project Structure`.
+- `multisig-wallet/tatus --short`:
+  - Verified as an accidental redirected `git diff` output (`9062` bytes) and removed from disk (`git rm`).
+- `audit-dojo/README.md`:
+  - Changed `First Flight / solo reviews` status from `next` to `completed` (`first-flight-reviews/flight-1/final-report.md`).
+  - Added explicit breakdown for Phase 3 (Hawk High): `15 documented findings: 3 High, 5 Medium, 5 Low, 2 Informational` + 3 standalone Foundry PoCs.
+  - Added Phase 4 (`MultiSigWallet v1`), linking directly to `https://github.com/samuraiigintoki/multisig-wallet` and accurately summarizing fixed-owner architecture, CEI hardening, `receive()`, and `24/24` green tests.
+  - Clarified contest/guided disclaimer: *"This is an archived training/contest review, not a paid client audit or production finding."*
+  - Verified and documented `@samuraigintokii` (`https://x.com/samuraigintokii`) as the correct X handle at the bottom alongside both GitHub profile links.
+
+**GitHub Packaging recommendations (Slice 3 — Manual Browser Actions Required):**
+- Recommended short descriptions under 350-char limit prepared for user:
+  - `audit-dojo`: *"Smart contract security training log & audit portfolio: 4 exploit PoCs, 2 guided audit reports, 1 completed CodeHawks First Flight (15 findings + Foundry PoCs), and personal interrogation checklist."*
+  - `multisig-wallet`: *"Lightweight, security-hardened fixed-owner Solidity multisig wallet v1. Features Checks-Effects-Interactions (CEI) execution, zero-address validation, self-audit checklist (`docs/self-audit.md`), and 24 passing Foundry tests (`24/24` green)."*
+- Pinned repository recommendations for `mayurrajput04` (canonical recruiter profile):
+  1. `mayurrajput04/audit-dojo` (Pin #1 — main portfolio root).
+  2. Unpin older web/development repositories to keep focus strictly on security engineering.
+  3. Note: If GitHub cross-account pinning does not allow `mayurrajput04` to pin `samuraiigintoki/multisig-wallet` directly, rely on the prominent cross-link and description now featured in `audit-dojo/README.md`.
+
+**Verification & Closure:**
+- Local target files verified (`first-flight-reviews/flight-1/final-report.md`, `checklists/personal-checklist-v1.md`, `docs/self-audit.md`, etc.).
+- No Solidity (`src/MultiSigWallet.sol`), test (`test/MultiSigWallet.t.sol`), or constructor validation code was modified.
+- `forge test` command (`cd multisig-wallet && forge test`) produces `/bin/bash: line 1: forge: command not found` in this sandboxed workspace; no fabricated test output is claimed.
+- `career action = 0` recorded honestly for 2026-07-13 (`career-log.md` untouched).
+- `tracker.md` row for `2026-07-13` recorded. Day closed.
