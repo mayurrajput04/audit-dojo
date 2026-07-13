@@ -26,7 +26,7 @@ Format per application:
 | 9   | 2026-06-14 | —          | —                                  | —                                                                        | —                     | Guided audit 1 takeaways                                                                                                          |
 | 10  | 2026-06-18 | —          | —                                  | —                                                                        | —                     | Flash loan logic pass                                                                                                             |
 | 2026-07-06 | —          | —                                  | —                                                                        | —                     | MultiSig spec                                                                                                                     |
-| 2026-07-10 | Binance    | Smart Contract Auditor             | https://jobs.lever.co/binance/6f64f1c8-2fdc-4231-8da3-631ebdf3ae2a/apply | **NOT YET SUBMITTED** | Requires manual captcha + resume upload. Remote. "Basic understanding" listed as requirement — fits. Needs stronger resume first. |
+| 2026-07-10 | Binance    | Smart Contract Auditor             | https://jobs.lever.co/binance/6f64f1c8-2fdc-4231-8da3-631ebdf3ae2a/apply | Already applied (per user, pre-2026-07-14) | Previously logged as pending; user reports application was submitted prior to this session. |
 | 2026-07-11 | Nethermind | Smart Contract Auditor / Evergreen | DM                                                              | Submitted             | Resume + GitHub portfolio included                                                                                                |
 
 ---
@@ -36,8 +36,8 @@ Format per application:
 ### 2026-07-10 — Binance Smart Contract Auditor
 
 - **URL:** https://jobs.lever.co/binance/6f64f1c8-2fdc-4231-8da3-631ebdf3ae2a/apply
-- **Status:** Identified, not submitted
-- **Blocker:** Resume needs updating before applying (see resume-feedback.md)
+- **Status:** Already applied (user confirmed, submission predates this session)
+- **Note:** Previously tracked as pending; corrected to submitted.
 - **Fit:** "Basic understanding" listed in requirements. Remote. Worth applying once resume is strong.
 
 ---
@@ -153,3 +153,16 @@ I am legally based in Maharashtra, India. I do not require visa sponsorship to w
 - User confirmed submission on 2026-07-13.
 - Evidence available to coach: user confirmation in session; no confirmation screenshot or email stored in the workspace.
 - Career action for 2026-07-13: **1**.
+
+---
+
+## 2026-07-14 — Career Action — Veridise Application
+
+- Type: Formal application (open form)
+- Company: Veridise
+- Role: Blockchain Security Analyst (open interest form — user selected security analyst track)
+- Platform: Veridise open application form
+- Status: **Submitted — user confirmed 2026-07-14**
+- Evidence: Email + resume attached via their form
+- Note: Career action corrected mid-session. Original coach suggestion (InfiniteSec DM) was bad advice — user rightly rejected it and submitted a real application instead.
+- Career action for 2026-07-14: **1**.
