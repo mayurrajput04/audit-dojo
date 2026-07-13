@@ -86,3 +86,70 @@ Update 2026-07-12 23:50 IST: User confirmed DM sent to EgisSec via X
 - Evidence: user statement "i sent dm"
 - Next: wait 5-7 days, no follow-up spam, continue public build threads
 
+---
+
+## 2026-07-13 — Career Action — OpenZeppelin Application
+
+- Type: Formal application
+- Company: OpenZeppelin
+- Role: Blockchain Security Researcher — Future Openings
+- Official listing/application: https://www.openzeppelin.com/careers/opening?gh_jid=4254142003
+- Location: Remote — Worldwide
+- Status: **Submitted — user confirmed 2026-07-13**
+- Caveat: This is an active future-opening pipeline, not an immediate vacancy and not explicitly titled junior. It has no stated minimum years requirement, accepts worldwide applicants, and is the strongest verified geography-compatible security role found after excluding prior targets and stale listings.
+
+### Why this target won
+
+- Official application is live and explicitly Remote — Worldwide.
+- Work directly matches the portfolio: smart-contract review, vulnerability prioritization, design/trust-assumption analysis, smart-contract development, and security research.
+- The listing asks for practical software/security experience, smart-contract development, Solidity/EVM knowledge, clear writing, and public research output. Current repositories provide evidence for each.
+- Foundry, invariant testing, audit-contest work, and public findings are listed as advantages rather than fixed experience gates.
+- Main gaps: no judged contest placement, no production client audit, limited advanced fuzzing/formal verification, and no public custom AI security tooling. Do not hide these.
+
+### Evidence to submit
+
+- Audit portfolio: https://github.com/mayurrajput04/audit-dojo
+- GitHub / MultiSigWallet: https://github.com/samuraiigintoki/multisig-wallet
+- Portfolio facts: 4 exploit PoCs; 2 guided audit reports; 1 First Flight report with 15 documented findings; fixed-owner multisig with self-audit and 24 passing Foundry tests.
+
+### Cover letter draft
+
+Hello OpenZeppelin team,
+
+I am a 2026 B.Tech Computer Science candidate building toward professional smart-contract security research through public, reproducible work. My Audit Dojo portfolio contains four exploit proof-of-concepts, two guided audit reports, and a completed First Flight review with 15 documented findings. I also built and self-audited a fixed-owner MultiSigWallet v1 with constructor hardening, explicit state-transition tests, CEI-based execution, failure-path coverage, documentation, and 24 passing Foundry tests.
+
+My strongest current areas are Solidity/EVM reasoning, mapping trust assumptions and state transitions, reproducing exploits in Foundry, and writing concise findings with impact and mitigation. I am early in my professional career and do not yet have production client-audit experience or judged contest placements; the linked repositories are the evidence for what I can currently do.
+
+OpenZeppelin's combination of protocol design review, adversarial code review, smart-contract development, and public research is the direction in which I want to grow. I would welcome consideration for a future opening and the opportunity to demonstrate my reasoning through the technical process.
+
+Regards,  
+Mayur Rajput
+
+### Required application answers
+
+**Our mission is to accelerate the world’s transition to an open and secure financial system. Could you please tell me how you identify with that mission?**
+
+Open finance is not useful if users still have to blindly trust code they cannot verify. That is what pulled me toward smart contract security: a small mistake in access control, accounting, or a state transition can put real user funds at risk. My work so far is small but concrete—exploit PoCs, audit reports, and a self-audited multisig. I want to keep doing work that turns hidden assumptions into tested invariants and makes onchain systems safer to use.
+
+**How would you describe your knowledge of smart contract security?**
+
+I have a strong practical foundation, but I am still early professionally. I am comfortable reviewing Solidity contracts, mapping actors and trust assumptions, tracing state transitions and external calls, and turning suspected issues into Foundry PoCs. My work has covered reentrancy, signature replay, allowance bugs, oracle manipulation, upgrade and storage-layout mistakes, accounting errors, and broken state machines. I have not worked on a production client audit yet, and I am still building depth in advanced fuzzing, formal verification, cryptography, and non-EVM ecosystems.
+
+**What's the most interesting smart contract vulnerability you've discovered or encountered in your work?**
+
+The most interesting issue I found was during my Hawk High review. A function called `graduateAndUpgrade()` directly called `_authorizeUpgrade()`, but that function is only an authorization hook—it does not update the ERC-1967 implementation slot. The transaction could succeed while the proxy quietly stayed on the old implementation. I proved that with a Foundry test that read the implementation slot before and after the call. The more interesting part was that the new implementation also had an incompatible storage layout, so fixing the missing upgrade call alone would activate state corruption. Both issues had to be understood together, not patched in isolation.
+
+**How do you use AI in your personal and professional life?**
+
+I mostly use AI to argue with my reasoning. I ask it for edge cases, alternate attack paths, and criticism of my reports, then verify the useful parts against the source code and Foundry tests. If I cannot prove a technical claim, it does not go into the report. I also use AI for planning and repetitive tracking work. I have not built a production AI security agent or auditing tool, and I would not claim that I have.
+
+**Where are you legally based? Do you require visa sponsorship?**
+
+I am legally based in Maharashtra, India. I do not require visa sponsorship to work remotely from India.
+
+### Submission record
+
+- Submitted through the official OpenZeppelin Greenhouse form.
+- User confirmed submission on 2026-07-13.
+- Evidence available to coach: user confirmation in session; no confirmation screenshot or email stored in the workspace.
+- Career action for 2026-07-13: **1**.

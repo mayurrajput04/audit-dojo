@@ -1,11 +1,12 @@
-# Coach Handoff — last updated: 2026-07-13 (late)
+# Coach Handoff — last updated: 2026-07-13
 
 ## Current state
 
-- Plan day (work stream): Day 40 (Receive path + README + self-audit start) — DONE
-- Calendar drift: ~12 days (plan Day 40 = 2 Jul, real date = 13 Jul), drift FLAT — did not grow this session
-- Mode: compress
-- Phase: 4 — Build and self-audit MultiSigWallet v1
+- Tracking basis: real calendar dates only; no plan-drift calculation going forward.
+- Latest session: 2026-07-13 — OpenZeppelin application + portfolio review — DONE.
+- Mode: adaptive compression; obsolete plan slices may be skipped when they no longer serve the goal.
+- Phase 4: MultiSigWallet v1 closed and sealed.
+- Current direction: portfolio packaging and targeted career actions.
 
 ## Last session shipped (12 Jul 2026)
 
@@ -191,3 +192,35 @@ Original plan Day 42 was "Self-audit pass 1" — but self-audit is already start
 1. Broaden self-audit (deeper invariant review, checklist pass on remaining notes).
 2. Shift toward Phase 5 (resume update with MultiSig, application tracker setup).
 3. If career action was 0 for 2 days straight, make Day 42 a career day (application or outreach).
+
+---
+
+## Progress update — 2026-07-13
+
+**Path chosen:** Path C — career action + portfolio review.
+
+**Career action:**
+- OpenZeppelin `Blockchain Security Researcher — Future Openings` application submitted through the official Greenhouse form.
+- Role verified as Remote — Worldwide; user is legally based in Maharashtra, India.
+- Submission confirmed by user in session; no screenshot/email is stored in the workspace.
+- `notes/career-log.md` is the single source of truth and records status **Submitted**.
+- Career action for 2026-07-13 = **1**.
+
+**Portfolio review:**
+- Internal Audit Dojo README links resolve locally; test commands are present in both portfolio READMEs.
+- Gaps recorded in the 2026-07-13 tracker row; none fixed today:
+  - MultiSig not pinned on the primary GitHub profile; portfolio is split across two GitHub identities.
+  - Older pinned repos dilute the security positioning.
+  - Audit Dojo repository description and README are stale relative to the completed First Flight and MultiSig.
+  - MultiSig README still says 23/23 and omits zero-address validation.
+  - MultiSig repository has no description and contains stray `tatus --short`.
+  - Audit Dojo README and primary GitHub profile show different X handles.
+
+**Verification:**
+- `forge test` run after logging changes: **24/24 passed**.
+- No Solidity, test, execute, receive, or constructor files changed.
+- Phase 4 remains closed.
+
+**Next slice:**
+- Do not reopen MultiSig engineering.
+- Treat the portfolio gaps as packaging work for the next selected plan day; prioritize identity/pins and stale README facts over cosmetic rewriting.
