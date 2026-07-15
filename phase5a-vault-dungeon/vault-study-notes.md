@@ -1,0 +1,1 @@
+I, Mayur, will not copy-paste from blogs. I will derive formulas and write attack tables by hand. If I fail a floor, I loop it.
