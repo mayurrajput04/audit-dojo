@@ -2,7 +2,7 @@
 ## Location: audit-dojo/phase5a-vault-dungeon/
 ## Day 43 Reset — Real Study, Real XP
 
-This folder is your clean dojo. All Phase 5A study lives here.
+This folder is your clean dojo. No more crowding `notes/`. All Phase 5A study lives here.
 When you clear dungeon, we sync final artifacts to `notes/` and `checklists/` for portfolio.
 
 ### Structure:
